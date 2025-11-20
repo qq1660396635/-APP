@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+  <title>炫酷猜数字</title>
+  <style>
+    :root {
+      --primary: #ff6b6b;
+      --secondary: #4ecdc4;
+      --bg: #1a1a2e;
+      --card: rgba(255, 255, 255, 0.08);
+      --text: #ffffff;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: all 0.5s ease;
+    }
+    
+    .game-container {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    h1 {
+      font-size: 32px;
+      margin-bottom: 5px;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .rule-hint {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    select, button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    #colorBtn {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      font-weight: bold;
+      flex: 1;
+    }
+    
+    #ruleSelect {
+      flex: 2;
+    }
+    
+    .rule-info {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 60px;
+    }
+    
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    
+    .counter {
+      font-size: 16px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px 15px;
+      border-radius: 20px;
+    }
+    
+    .input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    #guessInput {
+      flex: 1;
+      height: 60px;
+      font-size: 24px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: white;
+      outline: none;
+    }
+    
+    #submitBtn {
+      width: 60px;
+      height: 60px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
+    .game-area {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    #history {
+      height: 180px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 15px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .history-item {
+      margin-bottom: 5px;
+      padding: 3px 5px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    .keypad button {
+      height: 45px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    
+    #restartBtn {
+      grid-column: span 3;
+      background: var(--secondary) !important;
+    }
+    
+    .result-area {
+      text-align: center;
+    }
+    
+    #result {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      min-height: 25px;
+    }
+    
+    .success {
+      color: var(--secondary);
+    }
+    
+    .fail {
+      color: var(--primary);
+    }
+    
+    #showAnsBtn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    
+    @media (max-width: 500px) {
+      .game-container {
+        padding: 20px;
+      }
+      
+      .game-area {
+        grid-template-columns: 1fr;
+      }
+      
+      #history {
+        height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="header">
+      <h1>炫酷猜数字</h1>
+      <div class="rule-hint">A=数字位置都对 B=数字对位置错 例如: 0A2B=2个数字对但位置错</div>
+    </div>
+    
+    <div class="controls">
+      <select id="ruleSelect">
+        <option value="classic">经典模式</option>
+        <option value="repeat">可重复数字</option>
+        <option value="fiveDigit">5位挑战</option>
+        <option value="binary">二进制模式</option>
+        <option value="oddEven">奇偶模式</option>
+        <option value="prime">质数模式</option>
+        <option value="onlyEven">全偶数</option>
+        <option value="onlyOdd">全奇数</option>
+        <option value="sum10">和为10</option>
+        <option value="sequence">序列模式</option>
+        <option value="reverse">反向模式</option>
+        <option value="noZero">无零模式</option>
+        <option value="highLow">高低范围</option>
+        <option value="fibonacci">斐波那契</option>
+        <option value="multiples">倍数模式</option>
+        <option value="consecutive">连续数字</option>
+        <option value="palindrome">回文模式</option>
+        <option value="triangle">三角数</option>
+        <option value="square">平方数</option>
+        <option value="lucky">幸运数字</option>
+      </select>
+      <button id="colorBtn">换颜色</button>
+    </div>
+    
+    <div class="rule-info" id="ruleInfo">经典模式：猜4位不重复的数字（0-9）</div>
+    
+    <div class="game-info">
+      <div class="counter" id="counter">剩余: 8次</div>
+    </div>
+    
+    <div class="input-area">
+      <input id="guessInput" placeholder="输入4位数字" maxlength="4" readonly/>
+      <button id="submitBtn" disabled>✓</button>
+    </div>
+    
+    <div class="game-area">
+      <div id="history">
+        <div class="history-item">选择规则开始游戏</div>
+      </div>
+      
+      <div class="keypad">
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button id="restartBtn">新游戏</button>
+        <button>0</button>
+        <button>⌫</button>
+      </div>
+    </div>
+    
+    <div class="result-area">
+      <div id="result"></div>
+      <button id="showAnsBtn" style="display:none">显示答案</button>
+    </div>
+  </div>
+
+<script>
+(() => {
+  let secret = [], remain = 8, guessCount = 0, digits = [], used = new Set();
+  let currentRule = 'classic';
+  let colorIndex = 0;
+
+  const $ = sel => document.querySelector(sel);
+  const historyEl = $('#history');
+  const counterEl = $('#counter');
+  const inputEl = $('#guessInput');
+  const submitBtn = $('#submitBtn');
+  const restartBtn = $('#restartBtn');
+  const resultEl = $('#result');
+  const showAnsBtn = $('#showAnsBtn');
+  const ruleSelect = $('#ruleSelect');
+  const colorBtn = $('#colorBtn');
+  const ruleInfo = $('#ruleInfo');
+
+  // 背景颜色方案
+  const colorSchemes = [
+    { primary: '#ff6b6b', secondary: '#4ecdc4', bg: '#1a1a2e' },
+    { primary: '#e84393', secondary: '#0984e3', bg: '#16213e' },
+    { primary: '#fd79a8', secondary: '#00cec9', bg: '#1e5128' },
+    { primary: '#a29bfe', secondary: '#fd79a8', bg: '#3d1766' },
+    { primary: '#fab1a0', secondary: '#74b9ff', bg: '#b3541e' },
+    { primary: '#81ecec', secondary: '#55efc4', bg: '#1d4d70' },
+    { primary: '#fdcb6e', secondary: '#e17055', bg: '#6d2c41' },
+    { primary: '#00b894', secondary: '#00cec9', bg: '#1c5c3f' },
+    { primary: '#a1887f', secondary: '#bcaaa4', bg: '#5d4037' },
+    { primary: '#90a4ae', secondary: '#b0bec5', bg: '#37474f' },
+    { primary: '#ba68c8', secondary: '#ce93d8', bg: '#4a148c' },
+    { primary: '#ef5350', secondary: '#ec407a', bg: '#b71c1c' },
+    { primary: '#7bed9f', secondary: '#70a1ff', bg: '#2f3542' },
+    { primary: '#ff9ff3', secondary: '#feca57', bg: '#341f97' },
+    { primary: '#48dbfb', secondary: '#1dd1a1', bg: '#0c2461' }
+  ];
+
+  // 规则说明
+  const ruleDescriptions = {
+    classic: "经典模式：猜4位不重复的数字（0-9）",
+    repeat: "可重复数字：数字可以重复出现，如1123",
+    fiveDigit: "5位挑战：猜5位不重复的数字，难度升级",
+    binary: "二进制模式：只使用数字0和1",
+    oddEven: "奇偶模式：包含奇数和偶数数字",
+    prime: "质数模式：只使用质数（2,3,5,7）",
+    onlyEven: "全偶数：只使用偶数数字（0,2,4,6,8）",
+    onlyOdd: "全奇数：只使用奇数数字（1,3,5,7,9）",
+    sum10: "和为10：4位数字的和等于10",
+    sequence: "序列模式：数字按等差数列排列",
+    reverse: "反向模式：数字从大到小排列",
+    noZero: "无零模式：不包含数字0",
+    highLow: "高低范围：使用更大范围的数字",
+    fibonacci: "斐波那契：使用斐波那契数列数字",
+    multiples: "倍数模式：数字是某个数的倍数",
+    consecutive: "连续数字：数字是连续的自然数",
+    palindrome: "回文模式：数字是回文形式",
+    triangle: "三角数：使用三角数（1,3,6,10）",
+    square: "平方数：使用平方数（1,4,9,16）",
+    lucky: "幸运数字：使用幸运数字（3,7,8,9）"
+  };
+
+  // 切换背景颜色
+  colorBtn.addEventListener('click', () => {
+    colorIndex = (colorIndex + 1) % colorSchemes.length;
+    const scheme = colorSchemes[colorIndex];
+    
+    document.documentElement.style.setProperty('--primary', scheme.primary);
+    document.documentElement.style.setProperty('--secondary', scheme.secondary);
+    document.documentElement.style.setProperty('--bg', scheme.bg);
+  });
+
+  // 规则选择
+  ruleSelect.addEventListener('change', function() {
+    currentRule = this.value;
+    ruleInfo.textContent = ruleDescriptions[currentRule] || "未知规则";
+    newGame();
+  });
+
+  // 生成数字根据规则
+  function generateSecret(rule) {
+    switch(rule) {
+      case 'classic': return generateClassic();
+      case 'repeat': return generateRepeat();
+      case 'fiveDigit': return generateFiveDigit();
+      case 'binary': return generateBinary();
+      case 'oddEven': return generateOddEven();
+      case 'prime': return generatePrime();
+      case 'onlyEven': return generateOnlyEven();
+      case 'onlyOdd': return generateOnlyOdd();
+      case 'sum10': return generateSum10();
+      case 'sequence': return generateSequence();
+      case 'reverse': return generateReverse();
+      case 'noZero': return generateNoZero();
+      case 'highLow': return generateHighLow();
+      case 'fibonacci': return generateFibonacci();
+      case 'multiples': return generateMultiples();
+      case 'consecutive': return generateConsecutive();
+      case 'palindrome': return generatePalindrome();
+      case 'triangle': return generateTriangle();
+      case 'square': return generateSquare();
+      case 'lucky': return generateLucky();
+      default: return generateClassic();
+    }
+  }
+
+  function generateClassic() {
+    const pool = Array.from({length:10},(_,i)=>String(i));
+    for(let i=pool.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    return pool.slice(0,4);
+  }
+  
+  function generateRepeat() {
+    const result = [];
+    for (let i = 0; i < 4; i++) {
+      result.push(Math.floor(Math.random() * 10).toString());
+    }
+    // 确保至少有一个重复数字
+    if (new Set(result).size === 4) {
+      const index = Math.floor(Math.random() * 4);
+      result[index] = result[(index + 1) % 4];
+    }
+    return result;
+  }
+  
+  function generateFiveDigit() {
+    const pool = Array.from({length:10},(_,i)=>String(i));
+    for(let i=pool.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    return pool.slice(0,5);
+  }
+  
+  function generateBinary() {
+    const result = [];
+    for (let i = 0; i < 4; i++) {
+      result.push(Math.random() > 0.5 ? '1' : '0');
+    }
+    return result;
+  }
+  
+  function generateOddEven() {
+    const odds = ['1','3','5','7','9'];
+    const evens = ['0','2','4','6','8'];
+    const result = [];
+    
+    // 确保至少有一个奇数和偶数
+    result.push(odds[Math.floor(Math.random() * odds.length)]);
+    result.push(evens[Math.floor(Math.random() * evens.length)]);
+    
+    // 填充剩余位置
+    while(result.length < 4) {
+      const pool = Math.random() > 0.5 ? odds : evens;
+      const num = pool[Math.floor(Math.random() * pool.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    // 打乱顺序
+    for(let i=result.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [result[i],result[j]]=[result[j],result[i]];
+    }
+    
+    return result;
+  }
+  
+  function generatePrime() {
+    const primes = ['2','3','5','7'];
+    const result = [];
+    
+    while(result.length < 4) {
+      const num = primes[Math.floor(Math.random() * primes.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    return result;
+  }
+  
+  function generateOnlyEven() {
+    const evens = ['0','2','4','6','8'];
+    const result = [];
+    
+    while(result.length < 4) {
+      const num = evens[Math.floor(Math.random() * evens.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    return result;
+  }
+  
+  function generateOnlyOdd() {
+    const odds = ['1','3','5','7','9'];
+    const result = [];
+    
+    while(result.length < 4) {
+      const num = odds[Math.floor(Math.random() * odds.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    return result;
+  }
+  
+  function generateSum10() {
+    let numbers = [];
+    let remaining = 10;
+    
+    for(let i = 0; i < 3; i++) {
+      const max = Math.min(9, remaining - (3 - i - 1));
+      const num = Math.floor(Math.random() * max) + 1;
+      numbers.push(num);
+      remaining -= num;
+    }
+    
+    numbers.push(remaining);
+    
+    // 打乱顺序
+    for(let i=numbers.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [numbers[i],numbers[j]]=[numbers[j],numbers[i]];
+    }
+    
+    return numbers.map(n => n.toString());
+  }
+  
+  function generateSequence() {
+    const start = Math.floor(Math.random() * 6);
+    const diff = Math.floor(Math.random() * 3) + 1;
+    return [start, start + diff, start + diff*2, start + diff*3].map(n => n.toString());
+  }
+  
+  function generateReverse() {
+    const nums = generateClassic();
+    return nums.sort((a, b) => parseInt(b) - parseInt(a));
+  }
+  
+  function generateNoZero() {
+    const pool = Array.from({length:9},(_,i)=>String(i+1));
+    for(let i=pool.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    return pool.slice(0,4);
+  }
+  
+  function generateHighLow() {
+    // 使用更大范围的数字
+    const pool = ['0','1','2','3','4','5','6','7','8','9'];
+    for(let i=pool.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    return pool.slice(0,4);
+  }
+  
+  function generateFibonacci() {
+    const fibs = ['1','2','3','5','8'];
+    const result = [];
+    
+    while(result.length < 4) {
+      const num = fibs[Math.floor(Math.random() * fibs.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    return result;
+  }
+  
+  function generateMultiples() {
+    const base = Math.floor(Math.random() * 2) + 2; // 2或3
+    const result = [];
+    
+    for(let i = 1; i <= 4; i++) {
+      result.push((base * i).toString());
+    }
+    
+    return result;
+  }
+  
+  function generateConsecutive() {
+    const start = Math.floor(Math.random() * 6) + 1;
+    return [start, start+1, start+2, start+3].map(n => n.toString());
+  }
+  
+  function generatePalindrome() {
+    const first = Math.floor(Math.random() * 9) + 1;
+    const second = Math.floor(Math.random() * 10);
+    return [first.toString(), second.toString(), second.toString(), first.toString()];
+  }
+  
+  function generateTriangle() {
+    const triangles = ['1','3','6','10'];
+    const result = [];
+    
+    while(result.length < 4) {
+      const num = triangles[Math.floor(Math.random() * triangles.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    return result;
+  }
+  
+  function generateSquare() {
+    const squares = ['1','4','9','16'];
+    const result = [];
+    
+    while(result.length < 4) {
+      const num = squares[Math.floor(Math.random() * squares.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    return result;
+  }
+  
+  function generateLucky() {
+    const luckies = ['3','7','8','9'];
+    const result = [];
+    
+    while(result.length < 4) {
+      const num = luckies[Math.floor(Math.random() * luckies.length)];
+      if(!result.includes(num)) result.push(num);
+    }
+    
+    return result;
+  }
+
+  function renderInput(){
+    inputEl.value = digits.join('');
+    submitBtn.disabled = digits.length !== (currentRule === 'fiveDigit' ? 5 : 4);
+  }
+  
+  function check(gArr){
+    let a=0,b=0;
+    const g=[...gArr], s=[...secret];
+    for(let i=0;i<g.length;i++){
+      if(g[i]===s[i]){a++;g[i]='x';s[i]='y';}
+    }
+    for(let i=0;i<g.length;i++){
+      if(g[i]==='x') continue;
+      const idx=s.indexOf(g[i]);
+      if(idx!==-1){b++;s[idx]='y';}
+    }
+    return {a,b};
+  }
+  
+  function submit(){
+    guessCount++;
+    remain--;
+    const ab = check(digits);
+    const line=document.createElement('div');
+    line.className = 'history-item';
+    
+    if (ab.a === (currentRule === 'fiveDigit' ? 5 : 4)) {
+      line.style.background = 'rgba(78, 205, 196, 0.2)';
+    }
+    
+    line.textContent=`${digits.join('')} → ${ab.a}A${ab.b}B`;
+    historyEl.appendChild(line);
+    historyEl.scrollTop=historyEl.scrollHeight;
+    counterEl.textContent=`剩余: ${remain}次`;
+    digits=[]; used.clear(); renderInput();
+    
+    const targetLength = currentRule === 'fiveDigit' ? 5 : 4;
+    
+    if(ab.a===targetLength){
+      submitBtn.disabled=true;
+      resultEl.className='success';
+      if(guessCount<=(targetLength === 5 ? 9 : 7)){
+        resultEl.textContent='完美！';
+      }else{
+        resultEl.textContent=`成功！用了${guessCount}次`;
+      }
+      showAnsBtn.style.display='none';
+    }else if(remain<=0){
+      submitBtn.disabled=true;
+      resultEl.className='fail';
+      resultEl.textContent=`挑战失败`;
+      showAnsBtn.style.display='block';
+    }
+  }
+  
+  function newGame(){
+    secret=generateSecret(currentRule);
+    remain = currentRule === 'fiveDigit' ? 10 : 8;
+    guessCount=0;
+    digits=[]; used.clear();
+    
+    inputEl.placeholder = currentRule === 'fiveDigit' ? "输入5位数字" : "输入4位数字";
+    inputEl.maxLength = currentRule === 'fiveDigit' ? 5 : 4;
+    
+    renderInput();
+    historyEl.innerHTML='<div class="history-item">新游戏开始！当前规则：' + ruleDescriptions[currentRule] + '</div>';
+    counterEl.textContent=`剩余: ${remain}次`;
+    resultEl.textContent='';
+    submitBtn.disabled=true;
+    showAnsBtn.style.display='none';
+  }
+  
+  document.querySelectorAll('.keypad button').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const val=e.target.textContent;
+      if(val==='⌫'){
+        if(digits.length){used.delete(digits.pop()); renderInput();}
+      }else if(val==='新游戏'){
+        newGame();
+      }else if(digits.length< (currentRule === 'fiveDigit' ? 5 : 4) && !used.has(val) && val!=='⌫'){
+        digits.push(val); used.add(val); renderInput();
+      }
+    });
+  });
+  
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !submitBtn.disabled) {
+      submit();
+    }
+  });
+  
+  restartBtn.addEventListener('click',newGame);
+  submitBtn.addEventListener('click',submit);
+  showAnsBtn.addEventListener('click',()=>{
+    resultEl.textContent=`答案：${secret.join('')}`;
+  });
+  
+  // 初始化规则说明
+  ruleInfo.textContent = ruleDescriptions[currentRule];
+  newGame();
+})();
+</script>
+</body>
+</html>

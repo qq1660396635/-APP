@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>群主日记</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 5px;
+            transition: background 0.8s ease;
+            font-size: 80%; /* 默认80%字体大小 */
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px; /* 减少间距 */
+            color: white;
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        h1 {
+            font-size: 1.8rem; /* 减小标题 */
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 0.8rem; /* 减小副标题 */
+            opacity: 0.9;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        /* 搜索和添加容器 - 网格布局 */
+        .top-controls {
+            display: grid;
+            grid-template-columns: 80% 20%; /* 搜索占80%，添加占20% */
+            gap: 10px;
+            margin-bottom: 15px; /* 减少间距 */
+            align-items: center;
+            animation: fadeIn 1s ease;
+        }
+        
+        .search-container {
+            width: 100%;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 8px 15px; /* 减小padding */
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 20px; /* 减小圆角 */
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .search-box:focus {
+            outline: none;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            background: white;
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px; /* 减小padding */
+            border-radius: 20px; /* 减小圆角 */
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 15px rgba(67, 233, 123, 0.3);
+            white-space: nowrap;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 20px rgba(67, 233, 123, 0.4);
+        }
+        
+        .add-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* 段落网格 - 更紧凑 */
+        .paragraphs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* 减小最小宽度 */
+            gap: 10px; /* 减小间距 */
+            margin-bottom: 20px; /* 减少间距 */
+            animation: fadeIn 1s ease;
+        }
+        
+        .paragraph-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 10px; /* 减小圆角 */
+            padding: 15px; /* 减小padding */
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .paragraph-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .paragraph-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+        
+        .paragraph-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .paragraph-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2px 8px; /* 减小padding */
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 8px; /* 减少间距 */
+        }
+        
+        .paragraph-text {
+            font-size: 0.9rem; /* 减小字体 */
+            line-height: 1.5; /* 减小行高 */
+            color: #333;
+            margin-bottom: 8px; /* 减少间距 */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-weight: 500;
+        }
+        
+        .paragraph-category {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 2px 6px; /* 减小padding */
+            border-radius: 6px;
+            font-size: 0.7rem; /* 减小字体 */
+            margin-right: 4px;
+            margin-bottom: 3px;
+        }
+        
+        .paragraph-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px; /* 减少间距 */
+            padding-top: 8px; /* 减少间距 */
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .paragraph-author {
+            font-size: 0.75rem; /* 减小字体 */
+            color: #666;
+            font-style: italic;
+        }
+        
+        .paragraph-actions {
+            display: flex;
+            gap: 5px; /* 减小间距 */
+        }
+        
+        .copy-btn, .delete-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 3px 8px; /* 减小padding */
+            border-radius: 5px; /* 减小圆角 */
+            cursor: pointer;
+            font-size: 0.7rem; /* 减小字体 */
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .delete-btn {
+            background: linear-gradient(135deg, #f5576c, #f093fb);
+        }
+        
+        .copy-btn:hover, .delete-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+        }
+        
+        /* 分页样式 - 更紧凑 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px; /* 减小间距 */
+            margin-top: 20px; /* 减少间距 */
+            animation: fadeInUp 0.8s ease;
+            flex-wrap: wrap;
+        }
+        
+        .pagination button {
+            background: rgba(255,255,255,0.95);
+            border: none;
+            padding: 6px 10px; /* 减小padding */
+            border-radius: 6px; /* 减小圆角 */
+            cursor: pointer;
+            font-size: 0.8rem; /* 减小字体 */
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination .page-info {
+            background: rgba(255,255,255,0.95);
+            padding: 6px 12px; /* 减小padding */
+            border-radius: 6px; /* 减小圆角 */
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            font-size: 0.8rem; /* 减小字体 */
+        }
+        
+        .pagination .page-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            min-width: 30px; /* 减小宽度 */
+            font-size: 0.8rem; /* 减小字体 */
+        }
+        
+        .pagination .page-number.active {
+            transform: scale(1.05);
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5);
+        }
+        
+        /* 控制按钮 - 更小 */
+        .controls {
+            position: fixed;
+            bottom: 15px; /* 减少间距 */
+            right: 15px;
+            display: flex;
+            gap: 8px; /* 减小间距 */
+            z-index: 1000;
+        }
+        
+        .control-btn {
+            width: 40px; /* 减小尺寸 */
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.95);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem; /* 减小字体 */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+        
+        .theme-switcher:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+        
+        /* 添加段落弹窗 - 更紧凑 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px; /* 减小圆角 */
+            padding: 20px; /* 减小padding */
+            max-width: 450px; /* 减小宽度 */
+            width: 90%;
+            max-height: 85vh; /* 减小高度 */
+            overflow-y: auto;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px; /* 减少间距 */
+        }
+        
+        .modal-title {
+            font-size: 1.2rem; /* 减小字体 */
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem; /* 减小字体 */
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            width: 25px; /* 减小尺寸 */
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px; /* 减少间距 */
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 6px; /* 减少间距 */
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9rem; /* 减小字体 */
+        }
+        
+        .form-textarea {
+            width: 100%;
+            min-height: 100px; /* 减小高度 */
+            padding: 10px; /* 减小padding */
+            border: 2px solid #e0e0e0;
+            border-radius: 6px; /* 减小圆角 */
+            font-size: 0.9rem; /* 减小字体 */
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px; /* 减小padding */
+            border: 2px solid #e0e0e0;
+            border-radius: 6px; /* 减小圆角 */
+            font-size: 0.9rem; /* 减小字体 */
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 8px; /* 减小间距 */
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px; /* 减小padding */
+            border: none;
+            border-radius: 6px; /* 减小圆角 */
+            cursor: pointer;
+            font-size: 0.9rem; /* 减小字体 */
+            font-weight: 600;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+        
+        /* 配置面板 - 更紧凑 */
+        .setting-item {
+            margin-bottom: 15px; /* 减少间距 */
+        }
+        
+        .setting-label {
+            display: block;
+            margin-bottom: 6px; /* 减少间距 */
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9rem; /* 减小字体 */
+        }
+        
+        .font-size-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* 减小间距 */
+        }
+        
+        .font-size-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 30px; /* 减小尺寸 */
+            height: 30px;
+            border-radius: 6px; /* 减小圆角 */
+            cursor: pointer;
+            font-size: 1rem; /* 减小字体 */
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .font-size-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        
+        .font-size-display {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 6px 12px; /* 减小padding */
+            border-radius: 6px; /* 减小圆角 */
+            font-weight: 600;
+            color: #667eea;
+            min-width: 50px; /* 减小宽度 */
+            text-align: center;
+            font-size: 0.9rem; /* 减小字体 */
+        }
+        
+        /* 统计信息 - 更小 */
+        .stats {
+            position: fixed;
+            bottom: 15px; /* 减少间距 */
+            left: 15px;
+            background: rgba(255,255,255,0.9);
+            padding: 6px 10px; /* 减小padding */
+            border-radius: 6px; /* 减小圆角 */
+            color: #333;
+            font-size: 0.75rem; /* 减小字体 */
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* 空状态 - 更紧凑 */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px; /* 减少padding */
+            color: white;
+            animation: fadeIn 0.8s ease;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state h2 {
+            font-size: 1.3rem; /* 减小字体 */
+            margin-bottom: 6px; /* 减少间距 */
+            opacity: 0.9;
+        }
+        
+        .empty-state p {
+            font-size: 0.9rem; /* 减小字体 */
+            opacity: 0.8;
+        }
+        
+        /* 动画 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* 响应式设计 - 更紧凑 */
+        @media (max-width: 768px) {
+            body {
+                padding: 3px; /* 减小padding */
+            }
+            
+            .paragraphs-grid {
+                grid-template-columns: 1fr;
+                gap: 8px; /* 减小间距 */
+            }
+            
+            h1 {
+                font-size: 1.4rem; /* 减小字体 */
+            }
+            
+            .paragraph-card {
+                padding: 12px; /* 减小padding */
+            }
+            
+            .top-controls {
+                grid-template-columns: 1fr; /* 移动端单列 */
+                gap: 8px;
+            }
+            
+            .add-btn {
+                padding: 10px 15px; /* 增加移动端按钮大小 */
+            }
+            
+            .pagination {
+                gap: 4px; /* 减小间距 */
+            }
+            
+            .pagination button {
+                padding: 5px 8px; /* 减小padding */
+                font-size: 0.75rem; /* 减小字体 */
+            }
+            
+            .stats {
+                display: none;
+            }
+            
+            .controls {
+                bottom: 10px; /* 减少间距 */
+                right: 10px;
+            }
+            
+            .control-btn {
+                width: 35px; /* 减小尺寸 */
+                height: 35px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 群主日记</h1>
+            <p class="subtitle">记录那些因太帅而产生的烦恼</p>
+        </header>
+        
+        <div class="top-controls">
+            <div class="search-container">
+                <input type="text" class="search-box" id="searchBox" placeholder="搜索段落内容或作者...">
+            </div>
+            <button class="add-btn" id="addBtn">➕ 添加</button>
+        </div>
+        
+        <main>
+            <div class="paragraphs-grid" id="paragraphsGrid"></div>
+            
+            <div class="pagination" id="pagination"></div>
+        </main>
+    </div>
+    
+    <div class="controls">
+        <button class="control-btn config-btn" id="configBtn" title="设置">
+            ⚙️
+        </button>
+        <button class="control-btn theme-switcher" id="themeSwitcher" title="切换主题">
+            🎨
+        </button>
+    </div>
+    
+    <div class="stats" id="stats">
+        共 <span id="paragraphCount">0</span> 个段落
+    </div>
+    
+    <!-- 添加段落弹窗 -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ 添加新段落</h3>
+                <button class="close-btn" id="closeAddModal">&times;</button>
+            </div>
+            
+            <form id="addForm">
+                <div class="form-group">
+                    <label class="form-label">段落内容 *</label>
+                    <textarea class="form-textarea" id="paragraphContent" placeholder="在这里输入段落内容，可以包含换行和空格..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">作者</label>
+                    <input type="text" class="form-input" id="paragraphAuthor" placeholder="输入作者名称（可选）">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">分类</label>
+                    <input type="text" class="form-input" id="paragraphCategory" placeholder="输入分类标签，用逗号分隔（可选）">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelAdd">取消</button>
+                    <button type="submit" class="btn btn-primary">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 配置面板弹窗 -->
+    <div class="modal" id="configModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">⚙️ 设置</h3>
+                <button class="close-btn" id="closeConfigModal">&times;</button>
+            </div>
+            
+            <div class="setting-item">
+                <label class="setting-label">字体大小</label>
+                <div class="font-size-controls">
+                    <button class="font-size-btn" id="fontDecrease">−</button>
+                    <span class="font-size-display" id="fontSizeDisplay">80%</span>
+                    <button class="font-size-btn" id="fontIncrease">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 引入配置文件 -->
+    <script src="9_paragraph-config.js"></script>
+    <script>
+        // 全局变量
+        let currentPage = 1;
+        const itemsPerPage = 12;
+        let filteredParagraphs = [];
+        let currentFontSize = 80; // 默认80%字体大小
+        
+        // 等待配置加载完成
+        function waitForConfig() {
+            if (typeof window.paragraphConfig !== 'undefined') {
+                initPage();
+            } else {
+                setTimeout(waitForConfig, 100);
+            }
+        }
+        
+        // 初始化页面
+        function initPage() {
+            console.log('初始化页面...');
+            try {
+                const allParagraphs = window.paragraphConfig.getAllParagraphs();
+                console.log('获取到段落数量:', allParagraphs.length);
+                filteredParagraphs = [...allParagraphs];
+                updateStats();
+                renderParagraphs();
+                renderPagination();
+                loadSettings();
+            } catch (e) {
+                console.error('初始化失败:', e);
+            }
+        }
+        
+        // 搜索功能
+        function handleSearch() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const allParagraphs = window.paragraphConfig.getAllParagraphs();
+            
+            if (searchTerm === '') {
+                filteredParagraphs = [...allParagraphs];
+            } else {
+                filteredParagraphs = allParagraphs.filter(paragraph => 
+                    paragraph.text.toLowerCase().includes(searchTerm) ||
+                    paragraph.author.toLowerCase().includes(searchTerm) ||
+                    paragraph.category.some(cat => cat.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            currentPage = 1;
+            renderParagraphs();
+            renderPagination();
+            updateStats();
+        }
+        
+        // 渲染段落列表
+        function renderParagraphs() {
+            const grid = document.getElementById('paragraphsGrid');
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageParagraphs = filteredParagraphs.slice(startIndex, endIndex);
+            
+            if (pageParagraphs.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h2>😔 没有找到相关段落</h2>
+                        <p>试试其他关键词或添加新段落吧</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = pageParagraphs.map((paragraph, index) => `
+                <div class="paragraph-card">
+                    <span class="paragraph-number">#${startIndex + index + 1}</span>
+                    <div class="paragraph-text">${paragraph.text}</div>
+                    <div>
+                        ${paragraph.category.map(cat => `<span class="paragraph-category">${cat}</span>`).join('')}
+                    </div>
+                    <div class="paragraph-meta">
+                        <span class="paragraph-author">—— ${paragraph.author}</span>
+                        <div class="paragraph-actions">
+                            <button class="copy-btn" onclick="copyParagraph('${paragraph.text.replace(/'/g, "\\'")}', this)">
+                                复制
+                            </button>
+                            ${paragraph.isUserAdded ? `<button class="delete-btn" onclick="deleteParagraph(${startIndex + index})">删除</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 渲染分页
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredParagraphs.length / itemsPerPage);
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = `
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    ← 上一页
+                </button>
+            `;
+            
+            // 页码按钮
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            if (startPage > 1) {
+                paginationHTML += `<button class="page-number" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    paginationHTML += `<span style="color: white;">...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <button class="page-number ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `<span style="color: white;">...</span>`;
+                }
+                paginationHTML += `<button class="page-number" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            paginationHTML += `
+                <span class="page-info">
+                    第 ${currentPage} / ${totalPages} 页
+                </span>
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    下一页 →
+                </button>
+            `;
+            
+            pagination.innerHTML = paginationHTML;
+        }
+        
+        // 切换页面
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredParagraphs.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderParagraphs();
+            renderPagination();
+            
+            // 滚动到顶部
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // 复制段落
+        function copyParagraph(text, button) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = '✓ 已复制';
+                    button.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('copied');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('复制失败:', err);
+                    alert('复制失败，请手动复制');
+                });
+            } else {
+                // 降级方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const originalText = button.textContent;
+                    button.textContent = '✓ 已复制';
+                    button.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('复制失败:', err);
+                    alert('复制失败，请手动复制');
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+        
+        // 删除段落
+        function deleteParagraph(index) {
+            if (confirm('确定要删除这个段落吗？')) {
+                if (window.paragraphConfig.removeParagraph(index)) {
+                    initPage(); // 重新初始化页面
+                } else {
+                    alert('删除失败');
+                }
+            }
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('paragraphCount').textContent = filteredParagraphs.length;
+        }
+        
+        // 切换主题
+        function switchTheme() {
+            const newGradient = window.paragraphConfig.getRandomGradient();
+            document.body.style.background = newGradient;
+            
+            const button = document.getElementById('themeSwitcher');
+            button.style.transform = 'scale(1.2) rotate(360deg)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 300);
+        }
+        
+        // 字体大小调整
+        function adjustFontSize(delta) {
+            currentFontSize = Math.max(80, Math.min(120, currentFontSize + delta));
+            document.documentElement.style.fontSize = currentFontSize + '%';
+            document.getElementById('fontSizeDisplay').textContent = currentFontSize + '%';
+            saveSettings();
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            try {
+                localStorage.setItem('fontSize', currentFontSize);
+                console.log('设置保存成功');
+            } catch (e) {
+                console.error('保存设置失败:', e);
+            }
+        }
+        
+        // 加载设置
+        function loadSettings() {
+            try {
+                const savedFontSize = localStorage.getItem('fontSize');
+                if (savedFontSize) {
+                    currentFontSize = parseInt(savedFontSize);
+                    document.documentElement.style.fontSize = currentFontSize + '%';
+                    document.getElementById('fontSizeDisplay').textContent = currentFontSize + '%';
+                }
+            } catch (e) {
+                console.error('加载设置失败:', e);
+            }
+        }
+        
+        // 显示/隐藏添加弹窗
+        function toggleAddModal() {
+            const modal = document.getElementById('addModal');
+            modal.classList.toggle('show');
+            if (modal.classList.contains('show')) {
+                document.getElementById('paragraphContent').focus();
+            }
+        }
+        
+        // 显示/隐藏配置面板
+        function toggleConfigModal() {
+            const modal = document.getElementById('configModal');
+            modal.classList.toggle('show');
+        }
+        
+        // 添加新段落
+        function addNewParagraph(e) {
+            e.preventDefault();
+            
+            const content = document.getElementById('paragraphContent').value.trim();
+            const author = document.getElementById('paragraphAuthor').value.trim() || '匿名作者';
+            const categoryInput = document.getElementById('paragraphCategory').value.trim();
+            const category = categoryInput ? categoryInput.split(',').map(cat => cat.trim()) : ['未分类'];
+            
+            if (!content) {
+                alert('请输入段落内容');
+                return;
+            }
+            
+            const newParagraph = {
+                text: content,
+                author: author,
+                category: category,
+                isUserAdded: true
+            };
+            
+            if (window.paragraphConfig.addParagraph(newParagraph)) {
+                // 重新初始化页面
+                initPage();
+                
+                // 关闭弹窗并清空表单
+                toggleAddModal();
+                document.getElementById('addForm').reset();
+            } else {
+                alert('添加失败，请重试');
+            }
+        }
+        
+        // 等待DOM加载完成后绑定事件
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM加载完成，开始绑定事件...');
+            
+            // 搜索功能
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox) {
+                searchBox.addEventListener('input', handleSearch);
+            }
+            
+            // 主题切换
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            if (themeSwitcher) {
+                themeSwitcher.addEventListener('click', switchTheme);
+            }
+            
+            // 配置按钮
+            const configBtn = document.getElementById('configBtn');
+            if (configBtn) {
+                configBtn.addEventListener('click', toggleConfigModal);
+            }
+            
+            // 添加按钮 - 使用多种事件确保兼容性
+            const addBtn = document.getElementById('addBtn');
+            if (addBtn) {
+                addBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('添加按钮被点击');
+                    toggleAddModal();
+                });
+                
+                addBtn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    console.log('添加按钮被触摸');
+                    toggleAddModal();
+                });
+            }
+            
+            // 关闭按钮
+            const closeConfigModal = document.getElementById('closeConfigModal');
+            if (closeConfigModal) {
+                closeConfigModal.addEventListener('click', toggleConfigModal);
+            }
+            
+            const closeAddModal = document.getElementById('closeAddModal');
+            if (closeAddModal) {
+                closeAddModal.addEventListener('click', toggleAddModal);
+            }
+            
+            const cancelAdd = document.getElementById('cancelAdd');
+            if (cancelAdd) {
+                cancelAdd.addEventListener('click', toggleAddModal);
+            }
+            
+            // 字体大小调整
+            const fontIncrease = document.getElementById('fontIncrease');
+            if (fontIncrease) {
+                fontIncrease.addEventListener('click', () => adjustFontSize(5));
+            }
+            
+            const fontDecrease = document.getElementById('fontDecrease');
+            if (fontDecrease) {
+                fontDecrease.addEventListener('click', () => adjustFontSize(-5));
+            }
+            
+            // 添加表单
+            const addForm = document.getElementById('addForm');
+            if (addForm) {
+                addForm.addEventListener('submit', addNewParagraph);
+            }
+            
+            // 点击模态框外部关闭
+            const addModal = document.getElementById('addModal');
+            if (addModal) {
+                addModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        toggleAddModal();
+                    }
+                });
+            }
+            
+            const configModal = document.getElementById('configModal');
+            if (configModal) {
+                configModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        toggleConfigModal();
+                    }
+                });
+            }
+            
+            // 键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 't' || e.key === 'T') {
+                    switchTheme();
+                }
+                if (e.key === '/' && document.activeElement !== searchBox) {
+                    e.preventDefault();
+                    searchBox.focus();
+                }
+                if (e.key === 'Escape') {
+                    const addModalEl = document.getElementById('addModal');
+                    const configModalEl = document.getElementById('configModal');
+                    if (addModalEl.classList.contains('show')) {
+                        toggleAddModal();
+                    } else if (configModalEl.classList.contains('show')) {
+                        toggleConfigModal();
+                    }
+                }
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    toggleAddModal();
+                }
+            });
+            
+            // 等待配置加载并初始化
+            waitForConfig();
+            
+            console.log('事件绑定完成');
+        });
+        
+        // 备用初始化
+        window.addEventListener('load', function() {
+            if (!document.getElementById('paragraphsGrid').innerHTML) {
+                console.log('备用初始化');
+                waitForConfig();
+            }
+        });
+    </script>
+</body>
+</html>

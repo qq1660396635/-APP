@@ -1,0 +1,808 @@
+<!DOCTYPE html> 
+<html lang="zh-CN"> 
+<head>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剪贴板管家</title> 
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary-color: #5e72e4; --secondary-color: #f5365c; --success-color: #2dce89; --warning-color: #fb6340; --info-color: #11cdef; --dark: #32325d; --light: #f8f9fe; --border-radius: 6px; --transition: all 0.3s ease; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 8px; transform-origin: center center; transition: transform 0.3s ease; }
+        .container { max-width: 1400px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 10px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e9ecef; flex-wrap: wrap; gap: 8px; }
+        .title { font-size: 18px; color: var(--dark); font-weight: 600; }
+        .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 3px; color: white; white-space: nowrap; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); }
+        .btn-primary { background: var(--primary-color); } .btn-success { background: var(--success-color); } .btn-warning { background: var(--warning-color); } .btn-info { background: var(--info-color); }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        @media (min-width: 1200px) { .cards-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; } }
+        @media (min-width: 768px) and (max-width: 1199px) { .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 9px; } }
+        @media (max-width: 767px) { .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; } body { padding: 5px; } .container { padding: 8px; } .header { flex-direction: column; align-items: stretch; gap: 8px; } .header-actions { justify-content: center; } .btn { padding: 5px 8px; font-size: 10px; } }
+        @media (max-width: 400px) { .cards-grid { gap: 4px; } }
+        .card { background: white; border-radius: var(--border-radius); padding: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); transition: var(--transition); position: relative; cursor: move; user-select: none; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12); }
+        .card.dragging { opacity: 0.5; transform: rotate(5deg); z-index: 1000; }
+        .card.drag-over { border: 2px dashed var(--primary-color); background: rgba(94, 114, 228, 0.1); }
+        .card.selected-for-swap { border: 2px solid var(--info-color); background: rgba(17, 205, 239, 0.1); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .card-title { font-weight: 600; color: var(--dark); font-size: 12px; display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
+        .card-number { background: var(--primary-color); color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; flex-shrink: 0; }
+        .card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .card-actions { display: flex; gap: 2px; }
+        .icon-btn { width: 20px; height: 20px; border: none; background: transparent; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); color: var(--dark); font-size: 10px; }
+        .icon-btn:hover { background: var(--primary-color); color: white; }
+        .card-content { background: var(--light); padding: 6px; border-radius: 4px; min-height: 45px; max-height: 90px; overflow-y: auto; font-size: 10px; line-height: 1.4; color: #495057; word-break: break-all; white-space: pre-wrap; }
+        .card-footer { margin-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #868e96; }
+        .add-card { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border: 2px dashed #cbd5e0; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); min-height: 100px; }
+        .add-card:hover { background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%); border-color: var(--primary-color); }
+        .add-icon { font-size: 24px; color: #adb5bd; margin-bottom: 6px; }
+        .delete-mode .card { cursor: pointer; }
+        .delete-mode .card::after { content: '✓'; position: absolute; top: 3px; right: 3px; width: 16px; height: 16px; background: var(--success-color); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 10px; z-index: 10; }
+        .delete-mode .card.selected::after { display: flex; }
+        .delete-mode .card.selected { border: 2px solid var(--success-color); background: rgba(45, 206, 137, 0.1); }
+        .delete-mode .card:hover { border-color: var(--success-color); }
+        .delete-actions { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: white; padding: 8px 15px; border-radius: 6px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); display: none; gap: 8px; z-index: 1000; }
+        .delete-actions.active { display: flex; }
+        .swap-hint { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--info-color); color: white; padding: 8px 15px; border-radius: 6px; font-size: 12px; display: none; z-index: 1000; }
+        .swap-hint.active { display: block; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; animation: fadeIn 0.3s ease; }
+        .modal.active { display: flex; align-items: center; justify-content: center; padding: 20px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background: white; border-radius: 8px; padding: 15px; max-width: 450px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { margin-bottom: 12px; }
+        .modal-title { font-size: 16px; color: var(--dark); font-weight: 600; }
+        .form-group { margin-bottom: 12px; }
+        .form-label { display: block; margin-bottom: 5px; color: var(--dark); font-weight: 500; font-size: 12px; }
+        .form-input, .form-textarea { width: 100%; padding: 8px; border: 2px solid #e9ecef; border-radius: 4px; font-size: 12px; transition: var(--transition); }
+        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.1); }
+        .form-textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+        .zoom-controls { position: fixed; bottom: 20px; right: 20px; background: white; border-radius: 6px; padding: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); display: flex; gap: 6px; z-index: 100; }
+        .zoom-btn { width: 28px; height: 28px; border: none; background: var(--primary-color); color: white; border-radius: 4px; cursor: pointer; font-size: 14px; transition: var(--transition); }
+        .zoom-btn:hover { background: #4c63d2; }
+        .zoom-level { display: flex; align-items: center; padding: 0 6px; font-size: 11px; font-weight: 600; color: var(--dark); min-width: 35px; justify-content: center; }
+        .toast { position: fixed; top: 20px; right: 20px; background: white; padding: 10px 12px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 6px; z-index: 2000; animation: slideInRight 0.3s ease; max-width: 250px; font-size: 11px; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { border-left: 3px solid var(--success-color); } .toast.error { border-left: 3px solid var(--secondary-color); } .toast.info { border-left: 3px solid var(--info-color); }
+        .import-options { margin-bottom: 12px; }
+        .radio-group { display: flex; gap: 12px; margin-top: 6px; }
+        .radio-label { display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; }
+        .empty-state { text-align: center; padding: 30px 15px; color: #868e96; grid-column: 1 / -1; }
+        .empty-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
+    </style>
+</head> 
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">📋剪贴板管家</h1> 
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="copyAll()">
+                    <span>📄</span> 粘贴全部
+                </button> 
+                <button class="btn btn-success" onclick="exportData()">
+                    <span>💾</span> 导出
+                </button> 
+                <button class="btn btn-info" onclick="importData()">
+                    <span>📂</span> 导入
+                </button> 
+                <button class="btn btn-warning" id="deleteBtn" onclick="toggleDeleteMode()">
+                    <span>🗑️</span> 删除
+                </button> 
+                <button class="btn btn-info" id="swapBtn" onclick="toggleSwapMode()">
+                    <span>🔄</span> 交换 
+                </button> 
+            </div> 
+        </header>
+        <main>
+            <div class="cards-grid" id="cardsGrid">
+                <!-- 卡片将动态生成--> 
+            </div> 
+        </main> 
+    </div>
+    
+    <!-- 交换模式提示-->
+    <div class="swap-hint" id="swapHint">
+        点击两个卡片交换位置 
+    </div>
+    
+    <!-- 删除操作栏-->
+    <div class="delete-actions" id="deleteActions">
+        <span>已选择<span id="selectedCount">0</span> 项</span> 
+        <button class="btn btn-warning" onclick="deleteSelected()">删除选中 </button>
+        <button class="btn" style="background: #6c757d;" onclick="exitDeleteMode()">取消</button>
+    </div>
+    
+    <!-- 添加/编辑卡片模态框-->
+    <div class="modal" id="cardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">添加新内容</h2> 
+            </div> 
+            <div class="form-group">
+                <label class="form-label">简写名称*</label> 
+                <input type="text" class="form-input" id="cardName" placeholder="例如：地址、邮箱、代码片段...">
+            </div> 
+            <div class="form-group">
+                <label class="form-label">内容*</label> 
+                <textarea class="form-textarea" id="cardContent" placeholder="粘贴或输入你的内容..."></textarea>
+            </div> 
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveCard()"> 保存 </button>
+                <button class="btn" style="background: #6c757d;" onclick="closeModal()">取消</button>
+            </div> 
+        </div> 
+    </div>
+    
+    <!-- 导入模态框-->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">导入数据</h2> 
+            </div> 
+            <div class="import-options">
+                <label class="form-label">导入方式</label> 
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="importMode" value="replace" checked>
+                        覆盖现有数据
+                    </label> 
+                    <label class="radio-label">
+                        <input type="radio" name="importMode" value="append">
+                        追加到现有数据 
+                    </label> 
+                </div>
+            </div> 
+            <div class="form-group">
+                <label class="form-label">粘贴导入数据</label> 
+                <textarea class="form-textarea" id="importData" placeholder="格式示例： 1. 【名称1】 内容1
+2. 【名称2】 内容2"></textarea>
+            </div> 
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="doImport()"> 导入 </button>
+                <button class="btn" style="background: #6c757d;" onclick="closeImportModal()">取消</button>
+            </div> 
+        </div> 
+    </div>
+    
+    <!-- 缩放控制-->
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomOut()">－</button> 
+        <div class="zoom-level" id="zoomLevel">100%</div> 
+        <button class="zoom-btn" onclick="zoomIn()">＋</button> 
+        <button class="zoom-btn" onclick="resetZoom()">⟲</button> 
+    </div>
+    
+    <!-- 引入配置文件 -->
+    <script src="config.js"></script>
+    
+    <script>
+        let cards = []; 
+        let currentEditIndex = -1; 
+        let currentZoom = 100; 
+        let deleteMode = false; 
+        let swapMode = false; 
+        let selectedCards = new Set(); 
+        let swapFirstIndex = -1; 
+        let draggedIndex = -1;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromLocalStorage(); 
+            renderCards(); 
+            initDragAndDrop(); 
+        });
+
+        // 从本地存储加载数据
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('clipboardCards'); 
+            if (saved) {
+                try {
+                    cards = JSON.parse(saved); 
+                } catch (e) {
+                    cards = [];
+                }
+            } else {
+                // 如果没有保存数据，尝试使用配置文件的数据
+                if (typeof defaultCards !== 'undefined' && Array.isArray(defaultCards)) {
+                    cards = [...defaultCards];
+                    saveToLocalStorage();
+                } else {
+                    cards = [];
+                }
+            }
+        }
+
+        // 保存到本地存储
+        function saveToLocalStorage() {
+            localStorage.setItem('clipboardCards', JSON.stringify(cards));
+        }
+
+        // 渲染卡片
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            
+            if (cards.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div>暂无内容，点击下方按钮添加</div>
+                    </div>
+                    <div class="add-card" onclick="openModal()">
+                        <div class="add-icon">➕</div>
+                        <div style="color: #868e96; font-size: 12px;">添加新内容</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = cards.map((card, index) => `
+                <div class="card ${deleteMode ? 'clickable' : ''} ${swapMode ? 'swapable' : ''}"
+                     data-index="${index}" 
+                     draggable="${!deleteMode && !swapMode}" 
+                     onclick="${deleteMode ? 'toggleCardSelection(' + index + ')' : (swapMode ? 'handleSwapClick(' + index + ')' : '')}">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="card-number">${index + 1}</span>
+                            <span class="card-name">${card.name || '未命名'}</span>
+                        </div>
+                        ${!deleteMode && !swapMode ? `
+                            <div class="card-actions">
+                                <button class="icon-btn" onclick="event.stopPropagation(); copyCard(${index})" title="复制">📋</button>
+                                <button class="icon-btn" onclick="event.stopPropagation(); editCard(${index})" title="编辑">✏️</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="card-content">${escapeHtml(card.content || '')}</div>
+                    <div class="card-footer">
+                        <span>${formatTime(card.timestamp)}</span> 
+                        <span>${(card.content || '').length} 字符</span> 
+                    </div>
+                </div>
+            `).join('') + `
+                <div class="add-card" onclick="openModal()">
+                    <div class="add-icon">➕</div>
+                    <div style="color: #868e96; font-size: 12px;">添加新内容</div>
+                </div>
+            `;
+            
+            // 更新选中状态
+            if (deleteMode) {
+                selectedCards.forEach(index => {
+                    const card = grid.querySelector(`[data-index="${index}"]`);
+                    if (card) card.classList.add('selected');
+                });
+                updateSelectedCount();
+            }
+        }
+
+        // 初始化拖拽功能
+        function initDragAndDrop() {
+            const grid = document.getElementById('cardsGrid');
+            
+            grid.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('card') && !e.target.classList.contains('add-card')) {
+                    draggedIndex = parseInt(e.target.dataset.index);
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+            
+            grid.addEventListener('dragend', function(e) {
+                if (e.target.classList.contains('card')) {
+                    e.target.classList.remove('dragging');
+                }
+            });
+            
+            grid.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const card = e.target.closest('.card:not(.add-card)');
+                if (card && !card.classList.contains('dragging')) {
+                    card.classList.add('drag-over');
+                }
+            });
+            
+            grid.addEventListener('dragleave', function(e) {
+                const card = e.target.closest('.card:not(.add-card)');
+                if (card) {
+                    card.classList.remove('drag-over');
+                }
+            });
+            
+            grid.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const card = e.target.closest('.card:not(.add-card)');
+                if (card) {
+                    card.classList.remove('drag-over');
+                    const dropIndex = parseInt(card.dataset.index);
+                    if (draggedIndex !== -1 && draggedIndex !== dropIndex) {
+                        // 交换卡片
+                        const temp = cards[draggedIndex];
+                        cards[draggedIndex] = cards[dropIndex];
+                        cards[dropIndex] = temp;
+                        saveToLocalStorage();
+                        renderCards();
+                        showToast('卡片位置已交换', 'success');
+                    }
+                    draggedIndex = -1;
+                }
+            });
+        }
+
+        // 切换删除模式
+        function toggleDeleteMode() {
+            deleteMode = !deleteMode;
+            swapMode = false;
+            const container = document.querySelector('.container');
+            const deleteActions = document.getElementById('deleteActions');
+            const deleteBtn = document.getElementById('deleteBtn');
+            const swapBtn = document.getElementById('swapBtn');
+            const swapHint = document.getElementById('swapHint');
+            
+            if (deleteMode) {
+                container.classList.add('delete-mode');
+                deleteActions.classList.add('active');
+                deleteBtn.innerHTML = '<span>✅</span> 退出删除';
+                swapBtn.innerHTML = '<span>🔄</span> 交换';
+                selectedCards.clear();
+            } else {
+                container.classList.remove('delete-mode');
+                deleteActions.classList.remove('active');
+                deleteBtn.innerHTML = '<span>🗑️</span> 删除';
+                selectedCards.clear();
+                swapHint.classList.remove('active');
+                renderCards();
+            }
+        }
+
+        // 切换交换模式
+        function toggleSwapMode() {
+            swapMode = !swapMode;
+            deleteMode = false;
+            const container = document.querySelector('.container');
+            const deleteBtn = document.getElementById('deleteBtn');
+            const swapBtn = document.getElementById('swapBtn');
+            const deleteActions = document.getElementById('deleteActions');
+            const swapHint = document.getElementById('swapHint');
+            
+            if (swapMode) {
+                container.classList.remove('delete-mode');
+                deleteActions.classList.remove('active');
+                deleteBtn.innerHTML = '<span>🗑️</span> 删除';
+                swapBtn.innerHTML = '<span>✅</span> 退出交换';
+                swapHint.classList.add('active');
+                swapFirstIndex = -1;
+            } else {
+                swapBtn.innerHTML = '<span>🔄</span> 交换';
+                swapHint.classList.remove('active');
+                // 清除选中状态
+                document.querySelectorAll('.card.selected-for-swap').forEach(card => {
+                    card.classList.remove('selected-for-swap');
+                });
+                renderCards();
+            }
+        }
+
+        // 处理交换点击
+        function handleSwapClick(index) {
+            if (swapFirstIndex === -1) {
+                // 第一次点击
+                swapFirstIndex = index;
+                const card = document.querySelector(`[data-index="${index}"]`);
+                if (card) card.classList.add('selected-for-swap');
+            } else {
+                // 第二次点击
+                if (swapFirstIndex !== index) {
+                    // 交换卡片
+                    const temp = cards[swapFirstIndex];
+                    cards[swapFirstIndex] = cards[index];
+                    cards[index] = temp;
+                    saveToLocalStorage();
+                    showToast('卡片位置已交换', 'success');
+                }
+                // 清除选中状态
+                document.querySelectorAll('.card.selected-for-swap').forEach(card => {
+                    card.classList.remove('selected-for-swap');
+                });
+                swapFirstIndex = -1;
+                renderCards();
+            }
+        }
+
+        // 退出删除模式
+        function exitDeleteMode() {
+            deleteMode = false;
+            const container = document.querySelector('.container');
+            const deleteActions = document.getElementById('deleteActions');
+            const deleteBtn = document.getElementById('deleteBtn');
+            container.classList.remove('delete-mode');
+            deleteActions.classList.remove('active');
+            deleteBtn.innerHTML = '<span>🗑️</span> 删除';
+            selectedCards.clear();
+            renderCards();
+        }
+
+        // 切换卡片选中状态
+        function toggleCardSelection(index) {
+            if (selectedCards.has(index)) {
+                selectedCards.delete(index);
+            } else {
+                selectedCards.add(index);
+            }
+            const card = document.querySelector(`[data-index="${index}"]`);
+            if (card) {
+                card.classList.toggle('selected');
+            }
+            updateSelectedCount();
+        }
+
+        // 更新选中数量
+        function updateSelectedCount() {
+            document.getElementById('selectedCount').textContent = selectedCards.size;
+        }
+
+        // 删除选中的卡片
+        function deleteSelected() {
+            if (selectedCards.size === 0) {
+                showToast('请选择要删除的内容', 'info');
+                return;
+            }
+            if (confirm(`确定要删除选中的${selectedCards.size} 条内容吗？`)) {
+                // 按索引从大到小排序，避免删除时索引错位
+                const indicesToDelete = Array.from(selectedCards).sort((a, b) => b - a);
+                indicesToDelete.forEach(index => {
+                    cards.splice(index, 1);
+                });
+                saveToLocalStorage();
+                exitDeleteMode();
+                showToast(`已删除 ${indicesToDelete.length} 条内容`, 'success');
+            }
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // 格式化时间
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        // 打开添加模态框
+        function openModal() {
+            currentEditIndex = -1;
+            document.getElementById('modalTitle').textContent = '添加新内容';
+            document.getElementById('cardName').value = '';
+            document.getElementById('cardContent').value = '';
+            document.getElementById('cardModal').classList.add('active');
+            // 尝试从剪贴板获取内容
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText().then(text => {
+                    if (text && text.trim()) {
+                        document.getElementById('cardContent').value = text;
+                    }
+                }).catch(() => {
+                    // 忽略错误
+                });
+            }
+        }
+
+        // 编辑卡片
+        function editCard(index) {
+            currentEditIndex = index;
+            const card = cards[index];
+            document.getElementById('modalTitle').textContent = '编辑内容';
+            document.getElementById('cardName').value = card.name || '';
+            document.getElementById('cardContent').value = card.content || '';
+            document.getElementById('cardModal').classList.add('active');
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('cardModal').classList.remove('active');
+        }
+
+        // 保存卡片
+        function saveCard() {
+            const name = document.getElementById('cardName').value.trim();
+            const content = document.getElementById('cardContent').value.trim();
+            if (!name || !content) {
+                showToast('请填写名称和内容', 'error');
+                return;
+            }
+            const card = {
+                name: name,
+                content: content,
+                timestamp: new Date().toISOString()
+            };
+            if (currentEditIndex >= 0) {
+                cards[currentEditIndex] = card;
+                showToast('内容已更新', 'success');
+            } else {
+                cards.push(card);
+                showToast('内容已添加', 'success');
+            }
+            saveToLocalStorage();
+            renderCards();
+            closeModal();
+        }
+
+        // 复制单个卡片
+        function copyCard(index) {
+            const card = cards[index];
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(card.content).then(() => {
+                    showToast(`已复制: ${card.name}`, 'success');
+                }).catch(() => {
+                    showToast('复制失败', 'error');
+                });
+            } else {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = card.content;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(`已复制: ${card.name}`, 'success');
+                } catch (err) {
+                    showToast('复制失败', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // 复制全部
+        function copyAll() {
+            if (cards.length === 0) {
+                showToast('没有可复制的内容', 'info');
+                return;
+            }
+            let allText = cards.map((card, index) => {
+                return `${index + 1}. 【${card.name}】\n${card.content}`;
+            }).join('\n\n---\n\n');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(allText).then(() => {
+                    showToast(`已复制全部${cards.length} 条内容`, 'success');
+                }).catch(() => {
+                    showToast('复制失败', 'error');
+                });
+            } else {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = allText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(`已复制全部${cards.length} 条内容`, 'success');
+                } catch (err) {
+                    showToast('复制失败', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // 导出数据
+        function exportData() {
+            if (cards.length === 0) {
+                showToast('没有可导出的内容', 'info');
+                return;
+            }
+            let exportText = cards.map((card, index) => {
+                return `${index + 1}. 【${card.name}】\n${card.content}`;
+            }).join('\n\n---\n\n');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(exportText).then(() => {
+                    showToast('数据已复制到剪贴板，请保存', 'success');
+                }).catch(() => {
+                    showToast('导出失败', 'error');
+                });
+            } else {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = exportText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('数据已复制到剪贴板，请保存', 'success');
+                } catch (err) {
+                    showToast('导出失败', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        // 打开导入模态框
+        function importData() {
+            document.getElementById('importData').value = '';
+            document.querySelector('input[name="importMode"][value="replace"]').checked = true;
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        // 关闭导入模态框
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('active');
+        }
+
+        // 执行导入
+        function doImport() {
+            const importText = document.getElementById('importData').value.trim();
+            if (!importText) {
+                showToast('请输入要导入的数据', 'error');
+                return;
+            }
+            const importMode = document.querySelector('input[name="importMode"]:checked').value;
+            try {
+                const sections = importText.split(/\n\s*---\s*\n/);
+                const newCards = [];
+                sections.forEach(section => {
+                    const lines = section.trim().split('\n');
+                    if (lines.length > 0) {
+                        let name = '';
+                        let content = '';
+                        let match = lines[0].match(/^\d+\.\s*【(.+?)】/);
+                        if (match) {
+                            name = match[1];
+                            content = lines.slice(1).join('\n').trim();
+                        } else {
+                            match = lines[0].match(/^【(.+?)】$/);
+                            if (match) {
+                                name = match[1];
+                                content = lines.slice(1).join('\n').trim();
+                            } else {
+                                if (lines.length >= 2) {
+                                    name = lines[0].trim();
+                                    content = lines.slice(1).join('\n').trim();
+                                } else if (lines.length === 1) {
+                                    const line = lines[0];
+                                    name = line.length > 20 ? line.substring(0, 20) + '...' : line;
+                                    content = line;
+                                }
+                            }
+                        }
+                        if (name && content) {
+                            newCards.push({
+                                name: name,
+                                content: content,
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+                    }
+                });
+                if (newCards.length > 0) {
+                    const message = importMode === 'replace'
+                        ? `将导入${newCards.length} 条内容并覆盖现有数据，确定吗？`
+                        : `将追加${newCards.length} 条内容到现有数据，确定吗？`;
+                    if (confirm(message)) {
+                        if (importMode === 'replace') {
+                            cards = newCards;
+                        } else {
+                            cards = cards.concat(newCards);
+                        }
+                        saveToLocalStorage();
+                        renderCards();
+                        closeImportModal();
+                        showToast(`成功导入 ${newCards.length} 条内容`, 'success');
+                    }
+                } else {
+                    showToast('未找到有效的内容，请检查格式', 'error');
+                }
+            } catch (error) {
+                console.error('Import error:', error);
+                showToast('导入失败，请检查数据格式', 'error');
+            }
+        }
+
+        // 缩放功能
+        function zoomIn() {
+            if (currentZoom < 150) {
+                currentZoom += 10;
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > 50) {
+                currentZoom -= 10;
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 100;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            document.body.style.transform = `scale(${currentZoom / 100})`;
+            document.getElementById('zoomLevel').textContent = `${currentZoom}%`;
+        }
+
+        // Toast 提示
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️'
+            }[type] || 'ℹ️';
+            toast.innerHTML = `
+                <span style="font-size: 14px;">${icon}</span>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.3s ease reverse';
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + N: 新建
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                openModal();
+            }
+            // Ctrl/Cmd + E: 导出
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                exportData();
+            }
+            // Ctrl/Cmd + I: 导入
+            if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+                e.preventDefault();
+                importData();
+            }
+            // Ctrl/Cmd + A: 复制全部
+            if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !e.shiftKey) {
+                e.preventDefault();
+                copyAll();
+            }
+            // ESC: 关闭模态框或退出模式
+            if (e.key === 'Escape') {
+                if (deleteMode) {
+                    exitDeleteMode();
+                } else if (swapMode) {
+                    toggleSwapMode();
+                } else {
+                    closeModal();
+                    closeImportModal();
+                }
+            }
+        });
+
+        // 点击模态框外部关闭
+        document.getElementById('cardModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        document.getElementById('importModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImportModal();
+            }
+        });
+    </script>
+</body> 
+</html>

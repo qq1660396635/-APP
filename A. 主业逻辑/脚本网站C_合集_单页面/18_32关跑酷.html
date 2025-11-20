@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>轻松跑酷· 32 关</title>
+    <style>
+        /* 一、基础样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            font-family: 'Arial', sans-serif;
+            position: relative;
+        }
+        
+        #c {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 二、控制面板样式 */
+        .dpad {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 180px;
+            height: 180px;
+            z-index: 1000;
+            touch-action: none;
+        }
+        
+        .dpad-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .joystick {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            touch-action: none;
+            user-select: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .joystick-knob {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* 三、按钮样式 */
+        .jumpBtn, .boostBtn, .dashBtn, .viewBtn {
+            position: fixed;
+            z-index: 1000;
+            touch-action: none;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        
+        .jumpBtn {
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .boostBtn {
+            bottom: 110px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+        }
+        
+        .dashBtn {
+            bottom: 20px;
+            right: 110px;
+            width: 60px;
+            height: 60px;
+        }
+        
+        .viewBtn {
+            top: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+        }
+        
+        .btn {
+            position: absolute;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        .btn:active {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3));
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* 四、信息面板样式 */
+        #tip {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            z-index: 2000;
+            display: none;
+            max-width: 80%;
+            text-align: center;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        #ui {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 18px;
+            border-radius: 12px;
+            z-index: 2000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        #help {
+            position: fixed;
+            bottom: 7px;
+            left: 7px;
+            color: #fff;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 10px;
+            z-index: 2000;
+            max-width: 220px;
+            opacity: 0.9;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        /* 五、响应式设计 */
+        @media (max-width: 768px) {
+            .jumpBtn {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .boostBtn, .dashBtn, .viewBtn {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .btn {
+                font-size: 16px;
+            }
+            
+            #help {
+                font-size: 12px;
+                max-width: 180px;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .dpad {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .joystick {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .joystick-knob {
+                width: 25px;
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="c"></canvas>
+    <div id="tip"></div>
+    <div id="ui">
+        关卡：<span id="level">1</span> / 32<br>
+        提示：<span id="hint">找到发光的红色方块</span>
+    </div>
+    <div id="help">小提示：拖动圆盘移动，点击跳跃</div>
+    
+    <!-- 控制按钮 -->
+    <div class="dpad">
+        <div class="dpad-inner">
+            <div class="joystick">
+                <div class="joystick-knob"></div>
+            </div>
+        </div>
+    </div>
+    <div class="jumpBtn">
+        <div class="btn" style="width:100%;height:100%">跳</div>
+    </div>
+    <div class="boostBtn">
+        <div class="btn" style="width:100%;height:100%">加速</div>
+    </div>
+    <div class="dashBtn">
+        <div class="btn" style="width:100%;height:100%">前扑</div>
+    </div>
+    <div class="viewBtn">
+        <div class="btn" style="width:100%;height:100%">视角</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // ==================== 配置变量 ====================
+        const config = {
+            // 1. 游戏参数
+            playerSpeed: 0.12,
+            jumpPower: 0.35,
+            gravity: 0.012,
+            lowGravity: 0.006,
+            
+            // 2. 材质颜色
+            colors: {
+                platform: 0x90EE90,
+                ice: 0xb0e0e6,
+                mud: 0x8b4513,
+                boost: 0xffff00,
+                superJump: 0xffa500,
+                lowGravity: 0xc0c0c0,
+                clone: 0x00ff00,
+                invisible: 0x000000,
+                reverse: 0xff69b4,
+                goal: 0xff0000,
+                sky: 0x87CEEB,
+                playerBody: 0x4169E1,
+                playerHead: 0x87CEEB
+            },
+            
+            // 3. UI文本
+            texts: {
+                jump: '跳',
+                boost: '加速',
+                dash: '前扑',
+                view: '视角',
+                help: [
+                    "小提示：拖动圆盘移动，点击跳跃",
+                    "小提示：冰面要轻点，否则会滑下去",
+                    "小提示：泥潭里走得很慢，别着急",
+                    "小提示：按加速键可以跑得更快",
+                    "小提示：前扑可以跳得更远",
+                    "小提示：先按加速再前扑，可以飞得更远"
+                ],
+                levelComplete: "恭喜通关！你已经掌握了所有技巧！",
+                levelEnter: "进入关卡",
+                fallReset: "掉落重置",
+                jumpText: "跳跃",
+                boostStart: "加速启动",
+                dashText: "前扑！",
+                viewChange: "切换视角",
+                platformInvisible: "平台变透明了",
+                cloneCreated: "分身生成"
+            },
+            
+            // 4. 按钮尺寸
+            buttonSizes: {
+                jump: { width: 80, height: 80 },
+                action: { width: 60, height: 60 },
+                view: { width: 60, height: 60 }
+            },
+            
+            // 5. 控制参数
+            joystick: {
+                maxDistance: 30,
+                threshold: 10
+            },
+            
+            // 6. 游戏参数
+            maxLevel: 32,
+            fallThreshold: -20,
+            goalDistance: 2.5,
+            platformDistance: 3,
+            cloneDistance: 2,
+            cloneLifetime: 5000
+        };
+
+        // ==================== 全局变量 ====================
+        const c = document.getElementById('c');
+        const tip = document.getElementById('tip');
+        const levelEl = document.getElementById('level');
+        const hintEl = document.getElementById('hint');
+        const helpEl = document.getElementById('help');
+        
+        let scene, camera, renderer;
+        let player, velocity = new THREE.Vector3();
+        let isOnGround = false, keys = {};
+        let features = 0, time = 0;
+        let currentLevel = 1, platforms = [], goal = null;
+        let spawnPoint = new THREE.Vector3(0, 3, 0);
+        let isBoosting = false, isDashing = false, dashVelocity = new THREE.Vector3();
+        let viewAngle = 0;
+
+        // ==================== 工具函数 ====================
+        function showMessage(message) {
+            tip.style.display = 'block';
+            tip.textContent = message;
+            setTimeout(() => tip.style.display = 'none', 2000);
+        }
+
+        function addFeature() {
+            features++;
+            if (features === config.maxLevel) {
+                showMessage(config.texts.levelComplete);
+            }
+        }
+
+        // ==================== 初始化函数 ====================
+        function init() {
+            // 1. 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(config.colors.sky);
+            
+            // 2. 创建相机
+            camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+            
+            // 3. 创建渲染器
+            renderer = new THREE.WebGLRenderer({ canvas: c, antialias: true });
+            renderer.setSize(innerWidth, innerHeight);
+            renderer.shadowMap.enabled = true;
+            
+            // 4. 添加光照
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            // 5. 添加云朵装饰
+            for (let i = 0; i < 5; i++) {
+                const cloud = new THREE.Mesh(
+                    new THREE.SphereGeometry(1 + Math.random(), 8, 8),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0xffffff, 
+                        transparent: true, 
+                        opacity: 0.7 
+                    })
+                );
+                cloud.position.set(
+                    (Math.random() - 0.5) * 60,
+                    20 + Math.random() * 10,
+                    (Math.random() - 0.5) * 60
+                );
+                cloud.scale.set(1 + Math.random() * 2, 1, 1 + Math.random() * 2);
+                scene.add(cloud);
+            }
+            
+            // 6. 创建玩家
+            createPlayer();
+            
+            // 7. 构建关卡
+            buildLevel(currentLevel);
+            
+            // 8. 设置事件监听
+            setupEventListeners();
+            
+            // 9. 开始动画循环
+            animate();
+        }
+
+        // ==================== 创建玩家 ====================
+        function createPlayer() {
+            const group = new THREE.Group();
+            
+            // 身体
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, 0.8, 0.4),
+                new THREE.MeshPhongMaterial({ color: config.colors.playerBody })
+            );
+            body.position.y = 0;
+            group.add(body);
+            
+            // 头部
+            const head = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.5, 0.5),
+                new THREE.MeshPhongMaterial({ color: config.colors.playerHead })
+            );
+            head.position.y = 0.9;
+            group.add(head);
+            
+            player = group;
+            player.position.copy(spawnPoint);
+            player.castShadow = true;
+            scene.add(player);
+        }
+
+        // ==================== 构建关卡 ====================
+        function buildLevel(level) {
+            // 1. 清除旧平台
+            [...platforms, goal].forEach(obj => scene.remove(obj));
+            platforms = [];
+            goal = null;
+            
+            // 2. 设置关卡提示
+            const hints = [
+                "找到发光的红色方块", "小步跳跃练习", "体验冰面", "体验泥潭", "使用加速通过长道",
+                "使用前扑跳远", "组合加速+前扑", "简单螺旋", "简单风区", "体验超级跳跃",
+                "体验低重力", "体验分身", "体验隐形平台", "体验方向反转", "加速冲刺",
+                "最终综合", "连续小跳", "上下台阶", "冰面组合", "泥潭组合",
+                "加速长跳", "前扑组合", "螺旋上升", "风区组合", "超级跳组合",
+                "低重力气球", "分身迷宫", "隐形迷宫", "反转组合", "冲刺迷宫",
+                "技巧综合", "终极挑战"
+            ];
+            hintEl.textContent = hints[level - 1] || "找到发光的红色方块";
+            
+            // 3. 根据关卡创建平台
+            switch (level) {
+                case 1:
+                    createBasicLevel();
+                    break;
+                case 2:
+                    createJumpPracticeLevel();
+                    break;
+                case 3:
+                    createIceLevel();
+                    break;
+                case 4:
+                    createMudLevel();
+                    break;
+                case 5:
+                    createBoostLevel();
+                    break;
+                case 6:
+                    createDashLevel();
+                    break;
+                case 7:
+                    createComboLevel();
+                    break;
+                case 8:
+                    createSpiralLevel();
+                    break;
+                case 9:
+                    createWindLevel();
+                    break;
+                case 10:
+                    createSuperJumpLevel();
+                    break;
+                case 11:
+                    createLowGravityLevel();
+                    break;
+                case 12:
+                    createCloneLevel();
+                    break;
+                case 13:
+                    createInvisibleLevel();
+                    break;
+                case 14:
+                    createReverseLevel();
+                    break;
+                case 15:
+                    createSpeedLevel();
+                    break;
+                case 16:
+                    createFinalLevel();
+                    break;
+                default:
+                    createSimpleLevel(level);
+                    break;
+            }
+            
+            // 4. 添加平台到场景
+            platforms.forEach(p => {
+                p.receiveShadow = true;
+                p.castShadow = true;
+                scene.add(p);
+            });
+            
+            // 5. 添加目标点
+            if (goal) {
+                goal.castShadow = true;
+                scene.add(goal);
+            }
+        }
+
+        // ==================== 关卡创建函数 ====================
+        function createBasicLevel() {
+            platforms.push(
+                createPlatform(12, 1, 8, config.colors.platform, 0, 0, 0),
+                createPlatform(3, 1, 3, config.colors.platform, 0, 1, -6),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2, -12)
+            );
+            
+            goal = createGoal(0, 3, -12);
+        }
+
+        function createJumpPracticeLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(3, 1, 3, config.colors.platform, -3, 1.5, -6),
+                createPlatform(3, 1, 3, config.colors.platform, 3, 2, -10),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2.5, -14)
+            );
+            
+            goal = createGoal(0, 3.5, -14);
+        }
+
+        function createIceLevel() {
+            platforms.push(
+                createPlatform(8, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(6, 1, 3, config.colors.ice, 0, 1, -6),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2, -11)
+            );
+            
+            goal = createGoal(0, 3, -11);
+        }
+
+        function createMudLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(6, 1, 2, config.colors.mud, 0, 1, -5),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2, -9)
+            );
+            
+            goal = createGoal(0, 3, -9);
+        }
+
+        function createBoostLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(12, 1, 3, config.colors.platform, 0, 1, -8),
+                createPlatform(4, 1, 4, config.colors.platform, 0, 2, -14)
+            );
+            
+            goal = createGoal(0, 3, -14);
+        }
+
+        function createDashLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(3, 1, 3, config.colors.platform, -5, 1.5, -8),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2.5, -14)
+            );
+            
+            goal = createGoal(0, 3.5, -14);
+        }
+
+        function createComboLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(2, 1, 2, config.colors.boost, 0, 1, -5),
+                createPlatform(4, 1, 4, config.colors.platform, 0, 3, -12)
+            );
+            
+            goal = createGoal(0, 4, -12);
+        }
+
+        function createSpiralLevel() {
+            platforms.push(
+                createPlatform(4, 1, 4, config.colors.platform, 0, 0, 0),
+                createPlatform(3, 1, 3, config.colors.platform, 4, 1.5, -5),
+                createPlatform(3, 1, 3, config.colors.platform, 0, 2.5, -9),
+                createPlatform(4, 1, 4, config.colors.platform, -4, 3.5, -13)
+            );
+            
+            goal = createGoal(-4, 4.5, -13);
+        }
+
+        function createWindLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(5, 1, 6, config.colors.platform, -6, 1, -6),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2, -12)
+            );
+            
+            goal = createGoal(0, 3, -12);
+        }
+
+        function createSuperJumpLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(2, 1, 2, config.colors.superJump, 0, 1, -5),
+                createPlatform(4, 1, 4, config.colors.platform, 0, 4, -10)
+            );
+            
+            goal = createGoal(0, 5, -10);
+        }
+
+        function createLowGravityLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(8, 1, 3, config.colors.lowGravity, 0, 2, -7),
+                createPlatform(4, 1, 4, config.colors.platform, 0, 4, -12)
+            );
+            
+            goal = createGoal(0, 5, -12);
+        }
+
+        function createCloneLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(2, 0.2, 2, config.colors.clone, 0, 1, -5),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2, -10)
+            );
+            
+            goal = createGoal(0, 3, -10);
+        }
+
+        function createInvisibleLevel() {
+            platforms.push(
+                createPlatform(4, 1, 10, config.colors.invisible, -4, 0, -5),
+                createPlatform(4, 1, 10, config.colors.platform, 4, 1, -10)
+            );
+            
+            goal = createGoal(4, 2, -10);
+            
+            setTimeout(() => {
+                platforms[0].material.opacity = 0.3;
+                showMessage(config.texts.platformInvisible);
+            }, 2000);
+        }
+
+        function createReverseLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(3, 1, 3, config.colors.reverse, 0, 1, -6),
+                createPlatform(6, 1, 6, config.colors.platform, 0, 2, -12)
+            );
+            
+            goal = createGoal(0, 3, -12);
+        }
+
+        function createSpeedLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(10, 1, 3, config.colors.boost, 0, 1, -8),
+                createPlatform(4, 1, 4, config.colors.platform, 0, 2, -14)
+            );
+            
+            goal = createGoal(0, 3, -14);
+        }
+
+        function createFinalLevel() {
+            platforms.push(
+                createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0),
+                createPlatform(2, 1, 2, config.colors.ice, 3, 1.5, -5),
+                createPlatform(2, 1, 2, config.colors.superJump, -3, 3, -8),
+                createPlatform(4, 1, 4, config.colors.platform, 0, 5, -12)
+            );
+            
+            goal = createGoal(0, 6, -12);
+        }
+
+        function createSimpleLevel(level) {
+            const simpleLevels = [
+                { pattern: "直线三跳", heights: [0, 1, 2], distances: [6, 10] },
+                { pattern: "小台阶", heights: [0, 1, 1.5], distances: [4, 6] },
+                { pattern: "冰面短道", heights: [0, 1, 2], distances: [5, 8], special: "ice" },
+                { pattern: "泥潭短道", heights: [0, 1, 2], distances: [4, 7], special: "mud" },
+                { pattern: "加速短跳", heights: [0, 1, 2], distances: [8, 12], special: "boost" },
+                { pattern: "前扑小跳", heights: [0, 1.5, 2.5], distances: [6, 9], special: "dash" },
+                { pattern: "超级小跳", heights: [0, 1, 3], distances: [5, 8], special: "hijump" },
+                { pattern: "低重力小跳", heights: [0, 1, 2], distances: [6, 10], special: "lowg" },
+                { pattern: "分身小台", heights: [0, 1, 2], distances: [5, 8], special: "clone" },
+                { pattern: "隐形小台", heights: [0, 1, 2], distances: [4, 7], special: "invis" },
+                { pattern: "反转小台", heights: [0, 1, 2], distances: [5, 8], special: "reverse" },
+                { pattern: "冲刺小跳", heights: [0, 1, 2], distances: [10, 15], special: "speed" },
+                { pattern: "组合小跳", heights: [0, 1, 2], distances: [6, 10], special: "combo" },
+                { pattern: "迷你螺旋", heights: [0, 1, 2, 3], distances: [4, 6, 8], special: "spiral" },
+                { pattern: "迷你风区", heights: [0, 1, 2], distances: [6, 10], special: "wind" },
+                { pattern: "终极迷你", heights: [0, 1, 2, 3], distances: [5, 8, 12], special: "final" }
+            ];
+            
+            const idx = (level - 17) % simpleLevels.length;
+            const cfg = simpleLevels[idx];
+            
+            platforms.push(createPlatform(6, 1, 6, config.colors.platform, 0, 0, 0));
+            
+            for (let i = 0; i < cfg.heights.length - 1; i++) {
+                let material = getSpecialMaterial(cfg.special);
+                platforms.push(createPlatform(3, 1, 3, material, 0, cfg.heights[i + 1], -cfg.distances[i]));
+            }
+            
+            goal = createGoal(
+                0, 
+                cfg.heights[cfg.heights.length - 1] + 1, 
+                -cfg.distances[cfg.distances.length - 1]
+            );
+            
+            // 特殊效果处理
+            if (cfg.special === "invis") {
+                setTimeout(() => {
+                    platforms[1].material.opacity = 0.3;
+                    showMessage(config.texts.platformInvisible);
+                }, 2000);
+            }
+        }
+
+        // ==================== 辅助创建函数 ====================
+        function createPlatform(width, height, depth, color, x, y, z) {
+            const platform = new THREE.Mesh(
+                new THREE.BoxGeometry(width, height, depth),
+                new THREE.MeshPhongMaterial({ color })
+            );
+            platform.position.set(x, y, z);
+            return platform;
+        }
+
+        function createGoal(x, y, z) {
+            const goal = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 2, 1),
+                new THREE.MeshPhongMaterial({ 
+                    color: config.colors.goal, 
+                    emissive: config.colors.goal, 
+                    emissiveIntensity: 0.5 
+                })
+            );
+            goal.position.set(x, y, z);
+            return goal;
+        }
+
+        function getSpecialMaterial(special) {
+            switch (special) {
+                case "ice": 
+                    return new THREE.MeshPhongMaterial({ color: config.colors.ice });
+                case "mud": 
+                    return new THREE.MeshPhongMaterial({ color: config.colors.mud });
+                case "boost": 
+                    return new THREE.MeshPhongMaterial({ 
+                        color: config.colors.boost, 
+                        emissive: config.colors.boost, 
+                        emissiveIntensity: 0.2 
+                    });
+                case "hijump": 
+                    return new THREE.MeshPhongMaterial({ 
+                        color: config.colors.superJump, 
+                        emissive: config.colors.superJump, 
+                        emissiveIntensity: 0.3 
+                    });
+                case "lowg": 
+                    return new THREE.MeshPhongMaterial({ color: config.colors.lowGravity });
+                case "clone": 
+                    return new THREE.MeshPhongMaterial({ 
+                        color: config.colors.clone, 
+                        emissive: config.colors.clone, 
+                        emissiveIntensity: 0.3 
+                    });
+                case "invis": 
+                    return new THREE.MeshPhongMaterial({ 
+                        color: config.colors.invisible, 
+                        transparent: true, 
+                        opacity: 1 
+                    });
+                case "reverse": 
+                    return new THREE.MeshPhongMaterial({ color: config.colors.reverse });
+                case "speed": 
+                    return new THREE.MeshPhongMaterial({ 
+                        color: config.colors.boost, 
+                        emissive: config.colors.boost, 
+                        emissiveIntensity: 0.2 
+                    });
+                default: 
+                    return new THREE.MeshPhongMaterial({ color: config.colors.platform });
+            }
+        }
+
+        // ==================== 事件监听设置 ====================
+        function setupEventListeners() {
+            // 1. 跳跃按钮
+            setupButton('.jumpBtn .btn', jump);
+            
+            // 2. 加速按钮
+            setupButton('.boostBtn .btn', 
+                () => { isBoosting = true; showMessage(config.texts.boostStart); },
+                () => { isBoosting = false; }
+            );
+            
+            // 3. 前扑按钮
+            setupButton('.dashBtn .btn', () => {
+                if (!isDashing && isOnGround) {
+                    isDashing = true;
+                    dashVelocity.copy(velocity).multiplyScalar(2);
+                    dashVelocity.y = config.jumpPower * 0.6;
+                    showMessage(config.texts.dashText);
+                    setTimeout(() => isDashing = false, 300);
+                }
+            });
+            
+            // 4. 视角按钮
+            setupButton('.viewBtn .btn', () => {
+                viewAngle = (viewAngle + 1) % 3;
+                showMessage(config.texts.viewChange);
+            });
+            
+            // 5. 窗口调整
+            window.addEventListener('resize', onWindowResize);
+            
+            // 6. 圆盘控制
+            setupJoystick();
+        }
+
+        function setupButton(selector, onStart, onEnd) {
+            const element = document.querySelector(selector);
+            
+            element.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (onStart) onStart();
+            });
+            
+            element.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (onEnd) onEnd();
+            });
+            
+            element.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                if (onStart) onStart();
+            });
+            
+            element.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                if (onEnd) onEnd();
+            });
+        }
+
+        function setupJoystick() {
+            const joystick = document.querySelector('.joystick');
+            const knob = document.querySelector('.joystick-knob');
+            let dragging = false, startX, startY;
+            
+            function handleStart(e) {
+                e.preventDefault();
+                dragging = true;
+                const touch = e.touches ? e.touches[0] : e;
+                startX = touch.clientX;
+                startY = touch.clientY;
+            }
+            
+            function handleMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                const touch = e.touches ? e.touches[0] : e;
+                const dx = touch.clientX - startX;
+                const dy = touch.clientY - startY;
+                const maxDist = config.joystick.maxDistance;
+                const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+                const angle = Math.atan2(dy, dx);
+                const nx = Math.cos(angle) * dist;
+                const ny = Math.sin(angle) * dist;
+                
+                knob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+                
+                const threshold = config.joystick.threshold;
+                keys.left = nx < -threshold;
+                keys.right = nx > threshold;
+                keys.up = ny < -threshold;
+                keys.down = ny > threshold;
+            }
+            
+            function handleEnd(e) {
+                e.preventDefault();
+                dragging = false;
+                knob.style.transform = 'translate(-50%, -50%)';
+                keys.left = keys.right = keys.up = keys.down = false;
+            }
+            
+            // 触摸事件
+            joystick.addEventListener('touchstart', handleStart);
+            joystick.addEventListener('touchmove', handleMove);
+            joystick.addEventListener('touchend', handleEnd);
+            
+            // 鼠标事件
+            joystick.addEventListener('mousedown', handleStart);
+            window.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+        }
+
+        // ==================== 游戏逻辑 ====================
+        function jump() {
+            if (isOnGround) {
+                velocity.y = config.jumpPower;
+                showMessage(config.texts.jumpText);
+            }
+        }
+
+        function update() {
+            time++;
+            
+            // 1. 计算移动速度
+            let moveSpeed = isBoosting ? config.playerSpeed * 2 : config.playerSpeed;
+            let friction = 0.85;
+            let speedFactor = 1;
+            
+            // 2. 检测特殊平台
+            let onIce = false, onMud = false, onLowGravity = false, onSuperJump = false, onBoost = false;
+            
+            platforms.forEach(p => {
+                if (player.position.distanceTo(p.position) < config.platformDistance) {
+                    if (p.material.color.getHex() === config.colors.ice) onIce = true;
+                    if (p.material.color.getHex() === config.colors.mud) onMud = true;
+                    if (p.material.color.getHex() === config.colors.lowGravity) onLowGravity = true;
+                    if (p.material.emissive && p.material.emissive.getHex() === config.colors.superJump) onSuperJump = true;
+                    if (p.material.emissive && p.material.emissive.getHex() === config.colors.boost) onBoost = true;
+                }
+            });
+            
+            // 3. 应用平台效果
+            if (onIce) friction = 0.92;
+            if (onMud) {
+                speedFactor = 0.7;
+                friction = 0.8;
+            }
+            if (onBoost) moveSpeed = config.playerSpeed * 2.2;
+            
+            // 4. 处理方向控制
+            const reversePlatform = platforms.find(p => 
+                player.position.distanceTo(p.position) < config.platformDistance && 
+                p.material.color.getHex() === config.colors.reverse
+            );
+            
+            if (reversePlatform) {
+                if (keys.left) velocity.x = moveSpeed * speedFactor;
+                else if (keys.right) velocity.x = -moveSpeed * speedFactor;
+            } else {
+                if (keys.left) velocity.x = -moveSpeed * speedFactor;
+                else if (keys.right) velocity.x = moveSpeed * speedFactor;
+            }
+            
+            if (keys.up) velocity.z = -moveSpeed * speedFactor;
+            else if (keys.down) velocity.z = moveSpeed * speedFactor;
+            else velocity.z *= friction;
+            
+            velocity.x *= friction;
+            
+            // 5. 处理跳跃和重力
+            if (isDashing) {
+                velocity.copy(dashVelocity);
+            } else {
+                const gravity = onLowGravity ? config.lowGravity : config.gravity;
+                velocity.y -= gravity;
+                
+                if (onSuperJump && isOnGround) {
+                    velocity.y = config.jumpPower * 1.3;
+                }
+            }
+            
+            // 6. 更新玩家位置
+            player.position.add(velocity);
+            
+            // 7. 碰撞检测
+            let groundHeight = 0;
+            let onPlatform = false;
+            
+            platforms.forEach(p => {
+                const dx = Math.abs(player.position.x - p.position.x);
+                const dz = Math.abs(player.position.z - p.position.z);
+                const top = p.position.y + p.geometry.parameters.height / 2;
+                
+                if (dx < p.geometry.parameters.width / 2 && 
+                    dz < p.geometry.parameters.depth / 2 && 
+                    player.position.y <= top + 0.9 && 
+                    player.position.y >= top - 0.5) {
+                    groundHeight = top;
+                    velocity.y = 0;
+                    isOnGround = true;
+                    onPlatform = true;
+                }
+            });
+            
+            if (onPlatform) {
+                player.position.y = groundHeight + 0.9;
+                if (isDashing) {
+                    isDashing = false;
+                    dashVelocity.set(0, 0, 0);
+                }
+            } else {
+                isOnGround = false;
+            }
+            
+            // 8. 特殊平台效果
+            platforms.forEach(p => {
+                if (player.position.distanceTo(p.position) < config.cloneDistance) {
+                    if (p.material.emissive && p.material.emissive.getHex() === config.colors.clone && 
+                        p.geometry.parameters.height < 0.5) {
+                        const clone = player.clone();
+                        clone.position.set(
+                            player.position.x + 1, 
+                            player.position.y, 
+                            player.position.z + 1
+                        );
+                        scene.add(clone);
+                        showMessage(config.texts.cloneCreated);
+                        setTimeout(() => scene.remove(clone), config.cloneLifetime);
+                    }
+                }
+            });
+            
+            // 9. 检测目标点
+            if (goal && player.position.distanceTo(goal.position) < config.goalDistance) {
+                currentLevel++;
+                levelEl.textContent = currentLevel;
+                
+                if (currentLevel > config.maxLevel) {
+                    showMessage(config.texts.levelComplete);
+                    return;
+                }
+                
+                showMessage(`${config.texts.levelEnter}${currentLevel}`);
+                player.position.set(0, 3, 0);
+                velocity.set(0, 0, 0);
+                buildLevel(currentLevel);
+            }
+            
+            // 10. 掉落检测
+            if (player.position.y < config.fallThreshold) {
+                player.position.copy(spawnPoint);
+                velocity.set(0, 0, 0);
+                showMessage(config.texts.fallReset);
+            }
+            
+            // 11. 更新相机
+            updateCamera();
+        }
+
+        function updateCamera() {
+            let camX = player.position.x;
+            let camZ = player.position.z + 12;
+            
+            if (viewAngle === 1) {
+                camX = player.position.x - 8;
+                camera.lookAt(player.position.x, player.position.y, player.position.z - 5);
+            } else if (viewAngle === 2) {
+                camX = player.position.x + 8;
+                camera.lookAt(player.position.x, player.position.y, player.position.z - 5);
+            }
+            
+            camera.position.set(camX, player.position.y + 8, camZ);
+            
+            if (viewAngle === 0) {
+                camera.lookAt(player.position);
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = innerWidth / innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(innerWidth, innerHeight);
+        }
+
+        // ==================== 动画循环 ====================
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            renderer.render(scene, camera);
+        }
+
+        // ==================== 初始化游戏 ====================
+        init();
+    </script>
+</body>
+</html>
