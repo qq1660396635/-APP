@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>推荐中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        /* 下拉绳子 */
+        .pull-down-container {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 500;
+            width: 60px;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .pull-down-rope {
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.3));
+            border-radius: 1px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pull-down-rope::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .pull-down-rope:hover {
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0.5));
+        }
+        
+        .pull-down-menu {
+            position: absolute;
+            top: 40px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            display: none;
+            min-width: 180px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .pull-down-menu.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .menu-option {
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .menu-option:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .menu-option.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        /* 顶部搜索栏 */
+        .top-search {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 8px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            animation: slideDown 0.5s ease;
+        }
+        
+        .search-input {
+            border: none;
+            background: transparent;
+            padding: 5px 10px;
+            font-size: 14px;
+            width: 200px;
+            outline: none;
+        }
+        
+        .search-input::placeholder {
+            color: #999;
+        }
+        
+        .search-icon {
+            color: #667eea;
+            font-size: 16px;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: -280px;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 200;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .sidebar.open {
+            left: 0;
+        }
+        
+        .sidebar-toggle {
+            position: fixed;
+            left: 15px;
+            top: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 199;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        .sidebar-toggle.open {
+            left: 295px;
+        }
+        
+        .sidebar-toggle i {
+            color: #667eea;
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-toggle.open i {
+            transform: rotate(180deg);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 侧边栏按钮 */
+        .sidebar-btn {
+            width: 100%;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-btn.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .sidebar-btn.secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .sidebar-btn.danger {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+        
+        .sidebar-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar-btn i {
+            width: 16px;
+            text-align: center;
+        }
+        
+        /* 用户配置输入框 */
+        .config-input {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .config-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .config-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .config-textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* 分页 */
+        .sidebar-pagination {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .pagination-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #f5f5f5;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .pagination-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .pagination-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .pagination-info {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            padding-top: 100px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content.shifted {
+            margin-left: 280px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.8s ease;
+            min-height: 200px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .card-count {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        
+        .link-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: 60px;
+            position: relative;
+            user-select: none;
+        }
+        
+        .link-item:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .link-item.editing {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        .link-icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+        
+        .link-name {
+            font-size: 11px;
+            text-align: center;
+            line-height: 1.2;
+            word-break: break-all;
+            font-weight: 500;
+        }
+        
+        .link-name-input {
+            font-size: 11px;
+            text-align: center;
+            line-height: 1.2;
+            word-break: break-all;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            color: #333;
+            width: 100%;
+            outline: none;
+        }
+        
+        /* iframe 容器 */
+        .iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 300;
+            display: none;
+        }
+        
+        .iframe-container.active {
+            display: block;
+        }
+        
+        .site-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .iframe-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 301;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        .iframe-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .iframe-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .iframe-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .iframe-btn:hover {
+            background: #5569d8;
+        }
+        
+        .iframe-btn.close {
+            background: #f5576c;
+        }
+        
+        .iframe-btn.close:hover {
+            background: #e6465b;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+            font-size: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(102, 126, 234, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 响应式设计 */
+        @media(max-width: 768px) {
+            .sidebar {
+                width: 250px;
+                left: -250px;
+            }
+            
+            .sidebar-toggle.open {
+                left: 265px;
+            }
+            
+            .main-content.shifted {
+                margin-left: 250px;
+            }
+            
+            .top-search {
+                width: calc(100% - 30px);
+                max-width: 300px;
+            }
+            
+            .search-input {
+                width: 150px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .links-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+            
+            .link-item {
+                padding: 6px 3px;
+                min-height: 50px;
+            }
+            
+            .link-icon {
+                font-size: 16px;
+            }
+            
+            .link-name {
+                font-size: 10px;
+            }
+        }
+        
+        @media(max-width: 480px) {
+            .sidebar {
+                width: 220px;
+                left: -220px;
+            }
+            
+            .sidebar-toggle.open {
+                left: 235px;
+            }
+            
+            .main-content.shifted {
+                margin-left: 220px;
+            }
+            
+            .links-grid {
+                gap: 4px;
+            }
+            
+            .link-item {
+                padding: 4px 2px;
+                min-height: 45px;
+            }
+            
+            .link-icon {
+                font-size: 14px;
+            }
+            
+            .link-name {
+                font-size: 9px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 下拉绳子 -->
+    <div class="pull-down-container">
+        <div class="pull-down-rope" onclick="togglePullDownMenu()"></div>
+        <div class="pull-down-menu" id="pullDownMenu">
+            <div class="menu-option active" onclick="switchMode('recommendation')">
+                <i class="fas fa-star"></i>
+                <span>推荐导航</span>
+            </div>
+            <div class="menu-option" onclick="switchMode('userconfig')">
+                <i class="fas fa-user-cog"></i>
+                <span>用户配置</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 顶部搜索栏 -->
+    <div class="top-search">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索推荐内容...">
+    </div>
+    
+    <!-- 侧边栏切换按钮 -->
+    <div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <i class="fas fa-chevron-right"></i>
+    </div>
+    
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title" id="sidebarTitle">📚 推荐中心</h2>
+        </div>
+        
+        <!-- 推荐导航内容 -->
+        <div id="recommendationContent">
+            <div class="sidebar-section">
+                <div class="section-title">内容分类</div>
+                <button class="sidebar-btn primary" onclick="showCategory('books')">
+                    <i class="fas fa-book"></i> 在看书籍
+                </button>
+                <button class="sidebar-btn primary" onclick="showCategory('movies')">
+                    <i class="fas fa-film"></i> 在看电影
+                </button>
+                <button class="sidebar-btn primary" onclick="showCategory('comics')">
+                    <i class="fas fa-book-open"></i> 在看漫画
+                </button>
+            </div>
+        </div>
+        
+        <!-- 用户配置内容 -->
+        <div id="userConfigContent" style="display: none;">
+            <div class="sidebar-section">
+                <div class="section-title">添加书籍</div>
+                <input type="text" class="config-input" id="bookNameInput" placeholder="输入书籍名称">
+                <button class="sidebar-btn primary" onclick="addUserItem('books')">
+                    <i class="fas fa-plus"></i> 添加书籍
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="section-title">添加电影</div>
+                <input type="text" class="config-input" id="movieNameInput" placeholder="输入电影名称">
+                <button class="sidebar-btn primary" onclick="addUserItem('movies')">
+                    <i class="fas fa-plus"></i> 添加电影
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="section-title">添加漫画</div>
+                <input type="text" class="config-input" id="comicNameInput" placeholder="输入漫画名称">
+                <button class="sidebar-btn primary" onclick="addUserItem('comics')">
+                    <i class="fas fa-plus"></i> 添加漫画
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="section-title">批量导入</div>
+                <textarea class="config-textarea" id="batchInput" placeholder="批量输入内容，每行一个名称"></textarea>
+                <select class="config-input" id="batchType">
+                    <option value="books">书籍</option>
+                    <option value="movies">电影</option>
+                    <option value="comics">漫画</option>
+                </select>
+                <button class="sidebar-btn secondary" onclick="batchImport()">
+                    <i class="fas fa-file-import"></i> 批量导入
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="section-title">数据管理</div>
+                <button class="sidebar-btn secondary" onclick="exportUserData()">
+                    <i class="fas fa-download"></i> 导出数据
+                </button>
+                <button class="sidebar-btn danger" onclick="clearUserData()">
+                    <i class="fas fa-trash-alt"></i> 清除数据
+                </button>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="section-title">背景设置</div>
+            <button class="sidebar-btn secondary" onclick="document.getElementById('bgInput').click()">
+                <i class="fas fa-image"></i> 上传背景图片
+            </button>
+            <input type="file" id="bgInput" accept="image/*" onchange="handleBgUpload(event)" style="display:none;">
+            <button class="sidebar-btn secondary" onclick="resetBackground()">
+                <i class="fas fa-undo"></i> 恢复默认背景
+            </button>
+        </div>
+        
+        <div class="sidebar-section">
+            <div class="section-title">分页导航</div>
+            <div class="sidebar-pagination" id="sidebarPagination"></div>
+            <div class="pagination-info" id="paginationInfo"></div>
+        </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <header>
+                <h1 id="mainTitle">推荐中心</h1>
+                <p class="subtitle" id="mainSubtitle">发现好书、好电影、好漫画</p>
+            </header>
+            
+            <div id="cardsContainer"></div>
+            
+            <div class="no-data" id="noData" style="display:none;">
+                <i class="fas fa-inbox" style="font-size:48px;margin-bottom:15px;"></i>
+                <p id="noDataMessage">暂无数据，请点击左上角箭头打开设置</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- iframe 容器 -->
+    <div class="iframe-container" id="iframeContainer">
+        <div class="iframe-header">
+            <div class="iframe-title" id="iframeTitle">搜索内容</div>
+            <div class="iframe-controls">
+                <button class="iframe-btn" onclick="refreshIframe()">
+                    <i class="fas fa-sync-alt"></i> 刷新
+                </button>
+                <button class="iframe-btn close" onclick="closeIframe()">
+                    <i class="fas fa-times"></i> 返回
+                </button>
+            </div>
+        </div>
+        <iframe class="site-iframe" id="siteIframe" src=""></iframe>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+    
+    <!-- 引入配置文件 -->
+    <script src="recommendations.js"></script>
+    <script>
+        let currentPage = 1;
+        const cardsPerPage = 3;
+        const linksPerCard = 12;
+        let currentCategory = 'books';
+        let allCategories = {};
+        let filteredCategories = {};
+        let currentMode = 'recommendation'; // 'recommendation' 或 'userconfig'
+        let longPressTimer = null;
+        let editingElement = null;
+        
+        function init() {
+            // 确保配置已加载
+            if (window.recommendations) {
+                loadUserData();
+                loadCategory('books');
+                loadSavedBackground();
+            } else {
+                // 配置未加载，等待一段时间再尝试
+                setTimeout(init, 100);
+            }
+        }
+        
+        // 下拉菜单切换
+        function togglePullDownMenu() {
+            const menu = document.getElementById('pullDownMenu');
+            menu.classList.toggle('active');
+        }
+        
+        // 切换模式
+        function switchMode(mode) {
+            currentMode = mode;
+            const menu = document.getElementById('pullDownMenu');
+            const options = menu.querySelectorAll('.menu-option');
+            
+            options.forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            if (mode === 'recommendation') {
+                options[0].classList.add('active');
+                document.getElementById('recommendationContent').style.display = 'block';
+                document.getElementById('userConfigContent').style.display = 'none';
+                document.getElementById('sidebarTitle').textContent = '📚 推荐中心';
+                document.getElementById('mainTitle').textContent = '推荐中心';
+                document.getElementById('mainSubtitle').textContent = '发现好书、好电影、好漫画';
+                loadCategory('books');
+            } else {
+                options[1].classList.add('active');
+                document.getElementById('recommendationContent').style.display = 'none';
+                document.getElementById('userConfigContent').style.display = 'block';
+                document.getElementById('sidebarTitle').textContent = '⚙️ 用户配置';
+                document.getElementById('mainTitle').textContent = '我的收藏';
+                document.getElementById('mainSubtitle').textContent = '管理我的书籍、电影、漫画';
+                loadUserCategory('books');
+            }
+            
+            menu.classList.remove('active');
+            toggleSidebar(); // 关闭侧边栏
+        }
+        
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebar.classList.toggle('open');
+            toggle.classList.toggle('open');
+            mainContent.classList.toggle('shifted');
+        }
+        
+        function showCategory(category) {
+            currentCategory = category;
+            currentPage = 1;
+            loadCategory(category);
+            toggleSidebar(); // 关闭侧边栏
+        }
+        
+        function loadCategory(category) {
+            if (!window.recommendations || !window.recommendations[category]) {
+                showToast('配置加载失败，请检查recommendations.js文件');
+                return;
+            }
+            
+            allCategories = {...window.recommendations[category]};
+            filteredCategories = {...allCategories};
+            document.getElementById('noData').style.display = 'none';
+            renderCards();
+            renderSidebarPagination();
+        }
+        
+        // 加载用户数据
+        function loadUserData() {
+            const userData = localStorage.getItem('userRecommendations');
+            if (userData) {
+                try {
+                    window.userRecommendations = JSON.parse(userData);
+                } catch (e) {
+                    console.error('解析用户数据失败:', e);
+                    window.userRecommendations = {
+                        books: { "我的书籍": [] },
+                        movies: { "我的电影": [] },
+                        comics: { "我的漫画": [] }
+                    };
+                }
+            } else {
+                window.userRecommendations = {
+                    books: { "我的书籍": [] },
+                    movies: { "我的电影": [] },
+                    comics: { "我的漫画": [] }
+                };
+            }
+        }
+        
+        function loadUserCategory(category) {
+            if (!window.userRecommendations || !window.userRecommendations[category]) {
+                showToast('用户数据加载失败');
+                return;
+            }
+            
+            allCategories = {...window.userRecommendations[category]};
+            filteredCategories = {...allCategories};
+            document.getElementById('noData').style.display = 'none';
+            renderCards();
+            renderSidebarPagination();
+        }
+        
+        // 添加用户项目
+        function addUserItem(type) {
+            const inputId = type + 'NameInput';
+            const input = document.getElementById(inputId);
+            const name = input.value.trim();
+            
+            if (!name) {
+                showToast('请输入名称');
+                return;
+            }
+            
+            if (!window.userRecommendations[type]) {
+                window.userRecommendations[type] = {};
+            }
+            
+            // 获取第一个分类或创建新分类
+            const firstCategory = Object.keys(window.userRecommendations[type])[0] || '我的' + (type === 'books' ? '书籍' : type === 'movies' ? '电影' : '漫画');
+            
+            if (!window.userRecommendations[type][firstCategory]) {
+                window.userRecommendations[type][firstCategory] = [];
+            }
+            
+            window.userRecommendations[type][firstCategory].push({ name: name });
+            
+            // 保存到本地存储
+            localStorage.setItem('userRecommendations', JSON.stringify(window.userRecommendations));
+            
+            // 清空输入框
+            input.value = '';
+            
+            // 如果当前在用户配置模式，刷新显示
+            if (currentMode === 'userconfig') {
+                loadUserCategory(type);
+            }
+            
+            showToast('添加成功！');
+        }
+        
+        // 批量导入
+        function batchImport() {
+            const input = document.getElementById('batchInput');
+            const type = document.getElementById('batchType').value;
+            const lines = input.value.trim().split('\n').filter(line => line.trim());
+            
+            if (lines.length === 0) {
+                showToast('请输入要导入的内容');
+                return;
+            }
+            
+            if (!window.userRecommendations[type]) {
+                window.userRecommendations[type] = {};
+            }
+            
+            const firstCategory = Object.keys(window.userRecommendations[type])[0] || '我的' + (type === 'books' ? '书籍' : type === 'movies' ? '电影' : '漫画');
+            
+            if (!window.userRecommendations[type][firstCategory]) {
+                window.userRecommendations[type][firstCategory] = [];
+            }
+            
+            lines.forEach(line => {
+                window.userRecommendations[type][firstCategory].push({ name: line.trim() });
+            });
+            
+            // 保存到本地存储
+            localStorage.setItem('userRecommendations', JSON.stringify(window.userRecommendations));
+            
+            // 清空输入框
+            input.value = '';
+            
+            // 如果当前在用户配置模式，刷新显示
+            if (currentMode === 'userconfig') {
+                loadUserCategory(type);
+            }
+            
+            showToast(`成功导入 ${lines.length} 个项目！`);
+        }
+        
+        // 导出用户数据
+        function exportUserData() {
+            const dataStr = JSON.stringify(window.userRecommendations, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'user_recommendations.json';
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('数据导出成功！');
+        }
+        
+        // 清除用户数据
+        function clearUserData() {
+            if (confirm('确定要清除所有用户数据吗？此操作不可恢复！')) {
+                window.userRecommendations = {
+                    books: { "我的书籍": [] },
+                    movies: { "我的电影": [] },
+                    comics: { "我的漫画": [] }
+                };
+                localStorage.setItem('userRecommendations', JSON.stringify(window.userRecommendations));
+                
+                if (currentMode === 'userconfig') {
+                    loadUserCategory('books');
+                }
+                
+                showToast('用户数据已清除！');
+            }
+        }
+        
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            const categoryNames = Object.keys(filteredCategories);
+            
+            if (categoryNames.length === 0) {
+                container.innerHTML = '<div class="no-data">没有数据</div>';
+                return;
+            }
+            
+            const startIndex = (currentPage - 1) * cardsPerPage;
+            const endIndex = startIndex + cardsPerPage;
+            const categoriesToShow = categoryNames.slice(startIndex, endIndex);
+            
+            if (categoriesToShow.length === 0) {
+                container.innerHTML = '<div class="no-data">没有更多数据</div>';
+                return;
+            }
+            
+            container.innerHTML = categoriesToShow.map(categoryName => {
+                let links = filteredCategories[categoryName];
+                if (!Array.isArray(links)) {
+                    links = [];
+                }
+                
+                if (links.length > linksPerCard) {
+                    links = links.slice(0, linksPerCard);
+                }
+                
+                // 根据类别选择图标
+                let icon = '';
+                if (currentCategory === 'books') {
+                    icon = '📚';
+                } else if (currentCategory === 'movies') {
+                    icon = '🎬';
+                } else if (currentCategory === 'comics') {
+                    icon = '📖';
+                }
+                
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">${icon} ${categoryName}</h3>
+                            <span class="card-count">${links.length} 项</span>
+                        </div>
+                        <div class="links-grid">
+                            ${links.map((link, index) => `
+                                <div class="link-item" 
+                                     data-category="${categoryName}" 
+                                     data-index="${index}"
+                                     onmousedown="startLongPress(event, this)"
+                                     onmouseup="cancelLongPress()"
+                                     onmouseleave="cancelLongPress()"
+                                     ontouchstart="startLongPress(event, this)"
+                                     ontouchend="cancelLongPress()"
+                                     onclick="handleLinkClick(event, '${link.name}')"
+                                     title="${link.name}">
+                                    <div class="link-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <div class="link-name">${link.name}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 长按处理
+        function startLongPress(event, element) {
+            if (event.type === 'mousedown' && event.button !== 0) return;
+            
+            longPressTimer = setTimeout(() => {
+                enterEditMode(element);
+            }, 800);
+        }
+        
+        function cancelLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+        
+        function enterEditMode(element) {
+            if (editingElement) {
+                exitEditMode(editingElement);
+            }
+            
+            editingElement = element;
+            element.classList.add('editing');
+            
+            const nameElement = element.querySelector('.link-name');
+            const currentName = nameElement.textContent;
+            
+            nameElement.innerHTML = `<input type="text" class="link-name-input" value="${currentName}" onblur="saveEdit(this)" onkeypress="handleEditKeypress(event, this)">`;
+            const input = nameElement.querySelector('input');
+            input.focus();
+            input.select();
+        }
+        
+        function exitEditMode(element) {
+            element.classList.remove('editing');
+            const nameElement = element.querySelector('.link-name');
+            if (nameElement.querySelector('input')) {
+                const input = nameElement.querySelector('input');
+                nameElement.textContent = input.value;
+            }
+        }
+        
+        function saveEdit(input) {
+            const newName = input.value.trim();
+            if (!newName) {
+                showToast('名称不能为空');
+                return;
+            }
+            
+            const linkItem = input.closest('.link-item');
+            const category = linkItem.dataset.category;
+            const index = parseInt(linkItem.dataset.index);
+            
+            // 更新数据
+            if (currentMode === 'recommendation') {
+                window.recommendations[currentCategory][category][index].name = newName;
+            } else {
+                window.userRecommendations[currentCategory][category][index].name = newName;
+                localStorage.setItem('userRecommendations', JSON.stringify(window.userRecommendations));
+            }
+            
+            exitEditMode(linkItem);
+            showToast('修改成功！');
+        }
+        
+        function handleEditKeypress(event, input) {
+            if (event.key === 'Enter') {
+                saveEdit(input);
+            } else if (event.key === 'Escape') {
+                exitEditMode(input.closest('.link-item'));
+            }
+        }
+        
+        function handleLinkClick(event, name) {
+            if (editingElement) {
+                return;
+            }
+            
+            if (event.detail === 1) { // 单击
+                searchContent(name);
+            }
+        }
+        
+        function renderSidebarPagination() {
+            const pagination = document.getElementById('sidebarPagination');
+            const categoryNames = Object.keys(filteredCategories);
+            const totalPages = Math.ceil(categoryNames.length / cardsPerPage);
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                document.getElementById('paginationInfo').textContent = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">第${i}页</button>`;
+            }
+            pagination.innerHTML = paginationHTML;
+            document.getElementById('paginationInfo').textContent = `共 ${totalPages} 页`;
+        }
+        
+        function changePage(page) {
+            const categoryNames = Object.keys(filteredCategories);
+            const totalPages = Math.ceil(categoryNames.length / cardsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderCards();
+                renderSidebarPagination();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+        
+        function searchContent(name) {
+            const searchUrl = `https://www.baidu.com/s?wd=${encodeURIComponent(name)}`;
+            document.getElementById('iframeTitle').textContent = `搜索：${name}`;
+            document.getElementById('siteIframe').src = searchUrl;
+            document.getElementById('iframeContainer').classList.add('active');
+        }
+        
+        function closeIframe() {
+            document.getElementById('iframeContainer').classList.remove('active');
+            document.getElementById('siteIframe').src = '';
+        }
+        
+        function refreshIframe() {
+            const iframe = document.getElementById('siteIframe');
+            iframe.src = iframe.src;
+        }
+        
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                filteredCategories = {...allCategories};
+            } else {
+                filteredCategories = {};
+                Object.keys(allCategories).forEach(category => {
+                    if (Array.isArray(allCategories[category])) {
+                        const filteredLinks = allCategories[category].filter(link => 
+                            link.name && link.name.toLowerCase().includes(searchTerm)
+                        );
+                        if (filteredLinks.length > 0) {
+                            filteredCategories[category] = filteredLinks;
+                        }
+                    }
+                });
+            }
+            
+            currentPage = 1;
+            if (Object.keys(filteredCategories).length === 0) {
+                document.getElementById('cardsContainer').innerHTML = '<div class="no-data">没有找到匹配的内容</div>';
+                document.getElementById('sidebarPagination').innerHTML = '';
+                document.getElementById('paginationInfo').textContent = '';
+            } else {
+                renderCards();
+                renderSidebarPagination();
+            }
+        });
+        
+        // 背景上传处理
+        function handleBgUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('请选择有效的图片文件');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('图片大小不能超过5MB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    localStorage.setItem('pageBackground', e.target.result);
+                    localStorage.setItem('bgTimestamp', Date.now().toString());
+                    document.body.style.backgroundImage = `url(${e.target.result})`;
+                    showToast('背景更换成功!');
+                } catch (e) {
+                    showToast('背景更换失败，请更换另一张图片');
+                }
+            };
+            
+            reader.onerror = function() {
+                showToast('图片读取失败，请更换另一张图片');
+            };
+            
+            reader.readAsDataURL(file);
+            event.target.value = "";
+        }
+        
+        // 加载保存的背景
+        function loadSavedBackground() {
+            const savedBg = localStorage.getItem('pageBackground');
+            const timestamp = localStorage.getItem('bgTimestamp');
+            
+            if (savedBg && timestamp) {
+                const age = Date.now() - parseInt(timestamp);
+                if (age < 7 * 24 * 60 * 60 * 1000) { // 7天有效期
+                    document.body.style.backgroundImage = `url(${savedBg})`;
+                    return true;
+                } else {
+                    localStorage.removeItem('pageBackground');
+                    localStorage.removeItem('bgTimestamp');
+                }
+            }
+            return false;
+        }
+        
+        // 重置背景
+        function resetBackground() {
+            localStorage.removeItem('pageBackground');
+            localStorage.removeItem('bgTimestamp');
+            document.body.style.backgroundImage = '';
+            showToast('背景已重置为默认！');
+        }
+        
+        // Toast提示
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 点击页面其他地方关闭下拉菜单
+        document.addEventListener('click', function(event) {
+            const pullDownContainer = document.querySelector('.pull-down-container');
+            if (!pullDownContainer.contains(event.target)) {
+                document.getElementById('pullDownMenu').classList.remove('active');
+            }
+        });
+        
+        // ESC键关闭iframe
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeIframe();
+                if (editingElement) {
+                    exitEditMode(editingElement);
+                    editingElement = null;
+                }
+            }
+        });
+        
+        // 页面加载时初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>密码生成器 - 图案与数字</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* 顶部切换器 */
+        .header {
+            position: relative;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-switcher {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-switcher:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .mode-option {
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .mode-option.active {
+            background: white;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .title {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 主容器 */
+        .main-container {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 左侧图案区域 - 扩大 */
+        .pattern-section {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .pattern-section::after {
+            content: '点击生成新图案';
+            position: absolute;
+            bottom: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .pattern-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            max-width: 90vw;
+            max-height: 90vw;
+        }
+
+        .pattern-grid {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 80px;
+            padding: 50px;
+        }
+
+        .pattern-dot {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 4px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .pattern-dot.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            transform: scale(1.2);
+            box-shadow: 0 0 25px rgba(76, 175, 80, 0.8);
+        }
+
+        .pattern-line {
+            position: absolute;
+            background: #4CAF50;
+            height: 5px;
+            transform-origin: left center;
+            z-index: -1;
+            border-radius: 2.5px;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            animation: lineGrow 0.5s ease-out;
+        }
+
+        @keyframes lineGrow {
+            from {
+                transform: scaleX(0);
+            }
+            to {
+                transform: scaleX(1);
+            }
+        }
+
+        /* 右侧说明区域 - 缩小 */
+        .instruction-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+
+        .instruction-title {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .sequence-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .sequence-number {
+            color: #4CAF50;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        .sequence-text {
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 8px;
+            opacity: 0.8;
+        }
+
+        .direction-list {
+            color: white;
+            font-size: 14px;
+            line-height: 1.6;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .direction-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .direction-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(3px);
+        }
+
+        .direction-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        /* 数字密码模式 */
+        .password-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 40px;
+        }
+
+        .password-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .password-number {
+            color: #4CAF50;
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 10px;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+            font-family: 'Courier New', monospace;
+        }
+
+        .password-type {
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 底部说明 */
+        .footer {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            text-align: center;
+            color: white;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .pattern-section {
+                flex: 1;
+                min-height: 400px;
+            }
+
+            .pattern-container {
+                width: 350px;
+                height: 350px;
+            }
+
+            .pattern-grid {
+                gap: 50px;
+                padding: 30px;
+            }
+
+            .pattern-dot {
+                width: 45px;
+                height: 45px;
+                font-size: 16px;
+            }
+
+            .instruction-section {
+                max-width: 100%;
+                padding: 15px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .mode-switcher {
+                position: static;
+                transform: none;
+                margin: 10px auto 0;
+                width: fit-content;
+            }
+
+            .header {
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pattern-container {
+                width: 300px;
+                height: 300px;
+            }
+
+            .pattern-grid {
+                gap: 40px;
+                padding: 25px;
+            }
+
+            .pattern-dot {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">密码生成器</h1>
+        <div class="mode-switcher" onclick="toggleMode()">
+            <div class="mode-option active" id="patternMode">图案密码</div>
+            <div class="mode-option" id="numberMode">数字密码</div>
+        </div>
+    </div>
+
+    <!-- 图案密码模式 -->
+    <div class="main-container" id="patternContainer">
+        <div class="pattern-section" onclick="generateNewPattern()">
+            <div class="pattern-container">
+                <div class="pattern-grid" id="patternGrid">
+                    <!-- 9个点将通过JS生成 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="instruction-section">
+            <h2 class="instruction-title">绘制说明</h2>
+            <div class="sequence-display">
+                <div class="sequence-number" id="sequenceNumber">1234</div>
+                <div class="sequence-text">数字序列</div>
+            </div>
+            <div class="direction-list" id="directionList">
+                <div class="direction-item">
+                    <span class="direction-icon">📍</span>
+                    <span>从位置 1 开始</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数字密码模式 -->
+    <div class="password-section" id="passwordContainer">
+        <div class="password-display">
+            <div class="password-number" id="passwordNumber">1234</div>
+            <div class="password-type" id="passwordType">4位数字密码</div>
+        </div>
+        <button class="generate-btn" onclick="generatePassword()">生成新密码</button>
+    </div>
+
+    <div class="footer">
+        <p>提示：点击图案区域生成新图案，点击右上角切换密码类型</p>
+    </div>
+
+    <script>
+        let currentMode = 'pattern';
+        let currentPattern = [];
+        let passwordLength = 4;
+
+        // 初始化
+        function init() {
+            createPatternGrid();
+            generateNewPattern();
+        }
+
+        // 创建图案网格
+        function createPatternGrid() {
+            const grid = document.getElementById('patternGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'pattern-dot';
+                dot.id = `dot-${i}`;
+                dot.textContent = i;
+                grid.appendChild(dot);
+            }
+        }
+
+        // 生成新图案
+        function generateNewPattern() {
+            // 生成4-6个不重复的数字
+            const length = Math.floor(Math.random() * 3) + 4; // 4-6个点
+            const numbers = [];
+            while (numbers.length < length) {
+                const num = Math.floor(Math.random() * 9) + 1;
+                if (!numbers.includes(num)) {
+                    numbers.push(num);
+                }
+            }
+            
+            currentPattern = numbers;
+            displayPattern();
+            updateInstructions();
+        }
+
+        // 显示图案
+        function displayPattern() {
+            // 清除之前的状态
+            document.querySelectorAll('.pattern-dot').forEach(dot => {
+                dot.classList.remove('active');
+            });
+            document.querySelectorAll('.pattern-line').forEach(line => line.remove());
+
+            // 激活选中的点
+            currentPattern.forEach((num, index) => {
+                setTimeout(() => {
+                    document.getElementById(`dot-${num}`).classList.add('active');
+                    
+                    // 绘制连线
+                    if (index > 0) {
+                        drawLine(currentPattern[index - 1], num);
+                    }
+                }, index * 200);
+            });
+        }
+
+        // 绘制连线
+        function drawLine(from, to) {
+            const fromDot = document.getElementById(`dot-${from}`);
+            const toDot = document.getElementById(`dot-${to}`);
+            
+            const fromRect = fromDot.getBoundingClientRect();
+            const toRect = toDot.getBoundingClientRect();
+            const containerRect = fromDot.parentElement.getBoundingClientRect();
+            
+            const x1 = fromRect.left + fromRect.width / 2 - containerRect.left;
+            const y1 = fromRect.top + fromRect.height / 2 - containerRect.top;
+            const x2 = toRect.left + toRect.width / 2 - containerRect.left;
+            const y2 = toRect.top + toRect.height / 2 - containerRect.top;
+            
+            const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            
+            const line = document.createElement('div');
+            line.className = 'pattern-line';
+            line.style.width = `${distance}px`;
+            line.style.left = `${x1}px`;
+            line.style.top = `${y1}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            
+            fromDot.parentElement.appendChild(line);
+        }
+
+        // 更新说明
+        function updateInstructions() {
+            // 更新数字序列
+            document.getElementById('sequenceNumber').textContent = currentPattern.join('');
+            
+            // 更新方向说明
+            const directionList = document.getElementById('directionList');
+            directionList.innerHTML = '';
+            
+            currentPattern.forEach((num, index) => {
+                const item = document.createElement('div');
+                item.className = 'direction-item';
+                
+                let direction = '';
+                if (index === 0) {
+                    direction = `从位置 ${num} 开始`;
+                } else {
+                    const prev = currentPattern[index - 1];
+                    direction = getDirection(prev, num);
+                }
+                
+                item.innerHTML = `
+                    <span class="direction-icon">${index === 0 ? '📍' : '➡️'}</span>
+                    <span>${direction}</span>
+                `;
+                
+                setTimeout(() => {
+                    directionList.appendChild(item);
+                }, index * 200);
+            });
+        }
+
+        // 获取方向描述
+        function getDirection(from, to) {
+            const directions = {
+                '1-2': '向右移动到 2', '1-4': '向下移动到 4', '1-5': '向右下移动到 5',
+                '2-1': '向左移动到 1', '2-3': '向右移动到 3', '2-5': '向下移动到 5',
+                '3-2': '向左移动到 2', '3-5': '向左下移动到 5', '3-6': '向下移动到 6',
+                '4-1': '向上移动到 1', '4-5': '向右移动到 5', '4-7': '向下移动到 7',
+                '5-1': '向左上移动到 1', '5-2': '向上移动到 2', '5-3': '右上移动到 3',
+                '5-4': '向左移动到 4', '5-6': '向右移动到 6', '5-7': '左下移动到 7',
+                '5-8': '向下移动到 8', '5-9': '右下移动到 9',
+                '6-3': '向上移动到 3', '6-5': '向左移动到 5', '6-9': '向下移动到 9',
+                '7-4': '向上移动到 4', '7-5': '右上移动到 5', '7-8': '向右移动到 8',
+                '8-5': '向上移动到 5', '8-7': '向左移动到 7', '8-9': '向右移动到 9',
+                '9-5': '左上移动到 5', '9-6': '向上移动到 6', '9-8': '向左移动到 8'
+            };
+            
+            const key = `${from}-${to}`;
+            return directions[key] || `移动到位置 ${to}`;
+        }
+
+        // 切换模式
+        function toggleMode() {
+            const patternMode = document.getElementById('patternMode');
+            const numberMode = document.getElementById('numberMode');
+            const patternContainer = document.getElementById('patternContainer');
+            const passwordContainer = document.getElementById('passwordContainer');
+            
+            if (currentMode === 'pattern') {
+                currentMode = 'number';
+                patternMode.classList.remove('active');
+                numberMode.classList.add('active');
+                patternContainer.style.display = 'none';
+                passwordContainer.style.display = 'flex';
+                generatePassword();
+            } else {
+                currentMode = 'pattern';
+                numberMode.classList.remove('active');
+                patternMode.classList.add('active');
+                passwordContainer.style.display = 'none';
+                patternContainer.style.display = 'flex';
+                generateNewPattern();
+            }
+        }
+
+        // 生成数字密码
+        function generatePassword() {
+            let password = '';
+            for (let i = 0; i < passwordLength; i++) {
+                password += Math.floor(Math.random() * 10);
+            }
+            
+            document.getElementById('passwordNumber').textContent = password;
+            
+            // 随机切换4位或8位
+            passwordLength = passwordLength === 4 ? 8 : 4;
+            document.getElementById('passwordType').textContent = `${passwordLength}位数字密码`;
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

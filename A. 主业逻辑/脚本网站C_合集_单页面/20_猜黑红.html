@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜黑红扑克牌游戏</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            color: #fff;
+            min-height: 100vh;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+            transition: background 0.5s ease;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            color: #ffd700;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .player-info, .ai-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .card-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .player-area, .ai-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .area-title {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .hand-cards {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 2px;
+            justify-content: flex-start;
+            min-height: 90px;
+            padding: 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .card {
+            width: 60px;
+            height: 85px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .card.red {
+            background: linear-gradient(135deg, #f8f8f8, #e0e0e0);
+            color: #d40000;
+            border: 2px solid #d40000;
+        }
+        
+        .card.black {
+            background: linear-gradient(135deg, #f8f8f8, #e0e0e0);
+            color: #000;
+            border: 2px solid #000;
+        }
+        
+        .card.back {
+            background: linear-gradient(135deg, #1a3a5f, #2a5a8f);
+            color: white;
+            border: 2px solid #ffd700;
+        }
+        
+        .card.selected {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            border: 2px solid #ffd700;
+        }
+        
+        .card-value {
+            font-size: 1rem;
+            z-index: 2;
+        }
+        
+        .card-suit {
+            font-size: 1.4rem;
+            align-self: center;
+            z-index: 2;
+        }
+        
+        .card-corner {
+            font-size: 0.7rem;
+            z-index: 2;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .betting-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .bet-cards {
+            display: flex;
+            gap: 5px;
+            min-height: 90px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            min-width: 120px;
+        }
+        
+        .primary-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+        }
+        
+        .secondary-btn {
+            background: linear-gradient(135deg, #4ecdc4, #6ae6dd);
+            color: white;
+        }
+        
+        .choice-btn {
+            background: linear-gradient(135deg, #ffd166, #ffdc87);
+            color: #333;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .message {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin: 5px 0;
+            width: 100%;
+        }
+        
+        .zoom-controls {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 2px solid #ffd700;
+        }
+        
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 2px solid #ffd700;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                gap: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card {
+                width: 50px;
+                height: 70px;
+            }
+            
+            .card-suit {
+                font-size: 1.2rem;
+            }
+            
+            .card-value {
+                font-size: 0.9rem;
+            }
+            
+            button {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+            
+            .choice-btn {
+                padding: 10px 15px;
+                font-size: 0.8rem;
+            }
+            
+            .hand-cards {
+                min-height: 75px;
+            }
+        }
+        
+        .current-turn {
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        
+        .selection-count {
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #ffd700;
+        }
+        
+        .result-message {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>猜黑红扑克牌游戏</h1>
+            <p>选择黑色多、红色多还是一样多，猜对赢得所有牌，猜错则输掉牌！</p>
+        </header>
+        
+        <div class="game-info">
+            <div class="player-info">
+                <h2>玩家</h2>
+                <div class="card-count">手牌: <span id="player-count">26</span>张</div>
+            </div>
+            <div class="ai-info">
+                <h2>AI对手</h2>
+                <div class="card-count">手牌: <span id="ai-count">26</span>张</div>
+            </div>
+        </div>
+        
+        <div class="ai-area">
+            <div class="area-title">AI的手牌</div>
+            <div class="hand-cards" id="ai-cards">
+                <!-- AI的牌将由JS生成 -->
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="area-title">出牌区</div>
+            <div class="betting-area">
+                <div class="bet-cards" id="bet-cards">
+                    <!-- 出牌区的牌将由JS生成 -->
+                </div>
+            </div>
+            
+            <div class="message" id="game-message">
+                游戏准备开始，请点击"开始游戏"按钮
+            </div>
+            
+            <div class="controls">
+                <button id="start-btn" class="primary-btn">开始游戏</button>
+                <button id="restart-btn" class="secondary-btn">重新开始</button>
+                <button id="play-cards-btn" class="primary-btn" disabled>出牌</button>
+                <button id="guess-black-btn" class="choice-btn" disabled>猜黑色多</button>
+                <button id="guess-red-btn" class="choice-btn" disabled>猜红色多</button>
+                <button id="guess-equal-btn" class="choice-btn" disabled>猜一样多</button>
+            </div>
+        </div>
+        
+        <div class="player-area">
+            <div class="area-title">你的手牌</div>
+            <div class="hand-cards" id="player-cards">
+                <!-- 玩家的牌将由JS生成 -->
+            </div>
+            <div class="selection-count" id="selection-count">已选择 0 张牌 (最多7张)</div>
+        </div>
+    </div>
+    
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-in">+</button>
+        <button class="zoom-btn" id="zoom-out">-</button>
+        <button class="zoom-btn" id="reset-zoom">100%</button>
+        <button class="theme-btn" id="change-theme">🎨</button>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            playerCards: [],
+            aiCards: [],
+            betCards: [],
+            currentPlayer: 'player', // 'player' 或 'ai'
+            gameStarted: false,
+            maxBetCards: 7,
+            currentBetCount: 0,
+            playerSelectedCards: [],
+            aiErrorRate: 0.2, // AI有20%的概率猜错
+            betCardsRevealed: false // 出牌区的牌是否已揭晓
+        };
+        
+        // 扑克牌花色和点数
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        
+        // 预定义的背景颜色数组
+        const backgroundThemes = [
+            'linear-gradient(135deg, #1a2a3a, #2d4a5c)',
+            'linear-gradient(135deg, #2d1a3a, #5c2d4a)',
+            'linear-gradient(135deg, #3a2a1a, #5c4a2d)',
+            'linear-gradient(135deg, #1a3a2a, #2d5c4a)',
+            'linear-gradient(135deg, #3a1a2a, #5c2d4a)',
+            'linear-gradient(135deg, #2a1a3a, #4a2d5c)',
+            'linear-gradient(135deg, #1a3a3a, #2d5c5c)',
+            'linear-gradient(135deg, #3a3a1a, #5c5c2d)',
+            'linear-gradient(135deg, #3a1a1a, #5c2d2d)',
+            'linear-gradient(135deg, #1a1a3a, #2d2d5c)',
+            'linear-gradient(135deg, #3a2a3a, #5c4a5c)',
+            'linear-gradient(135deg, #2a3a1a, #4a5c2d)',
+            'linear-gradient(135deg, #1a2a2a, #2d4a4a)',
+            'linear-gradient(135deg, #2a1a1a, #4a2d2d)',
+            'linear-gradient(135deg, #1a1a1a, #2d2d2d)'
+        ];
+        
+        // DOM元素
+        const playerCardsEl = document.getElementById('player-cards');
+        const aiCardsEl = document.getElementById('ai-cards');
+        const betCardsEl = document.getElementById('bet-cards');
+        const playerCountEl = document.getElementById('player-count');
+        const aiCountEl = document.getElementById('ai-count');
+        const gameMessageEl = document.getElementById('game-message');
+        const selectionCountEl = document.getElementById('selection-count');
+        
+        // 按钮
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const playCardsBtn = document.getElementById('play-cards-btn');
+        const guessBlackBtn = document.getElementById('guess-black-btn');
+        const guessRedBtn = document.getElementById('guess-red-btn');
+        const guessEqualBtn = document.getElementById('guess-equal-btn');
+        const zoomInBtn = document.getElementById('zoom-in');
+        const zoomOutBtn = document.getElementById('zoom-out');
+        const resetZoomBtn = document.getElementById('reset-zoom');
+        const changeThemeBtn = document.getElementById('change-theme');
+        
+        // 初始化游戏
+        function initGame() {
+            gameState.gameStarted = false;
+            gameState.playerCards = [];
+            gameState.aiCards = [];
+            gameState.betCards = [];
+            gameState.currentPlayer = 'player';
+            gameState.currentBetCount = 0;
+            gameState.playerSelectedCards = [];
+            gameState.betCardsRevealed = false;
+            
+            // 创建一副扑克牌
+            const deck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    const isRed = suit === '♥' || suit === '♦';
+                    deck.push({
+                        suit: suit,
+                        value: value,
+                        isRed: isRed,
+                        color: isRed ? 'red' : 'black',
+                        id: `${suit}-${value}` // 添加唯一标识符
+                    });
+                }
+            }
+            
+            // 洗牌
+            shuffleDeck(deck);
+            
+            // 发牌给玩家和AI
+            for (let i = 0; i < deck.length; i++) {
+                if (i % 2 === 0) {
+                    gameState.playerCards.push(deck[i]);
+                } else {
+                    gameState.aiCards.push(deck[i]);
+                }
+            }
+            
+            // 更新UI
+            updateUI();
+            
+            // 更新消息
+            gameMessageEl.textContent = "游戏已准备，请点击'开始游戏'按钮";
+            
+            // 启用/禁用按钮
+            startBtn.disabled = false;
+            playCardsBtn.disabled = true;
+            guessBlackBtn.disabled = true;
+            guessRedBtn.disabled = true;
+            guessEqualBtn.disabled = true;
+            
+            // 更新选择计数
+            updateSelectionCount();
+        }
+        
+        // 洗牌函数
+        function shuffleDeck(deck) {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+        
+        // 开始游戏
+        function startGame() {
+            if (gameState.gameStarted) return;
+            
+            gameState.gameStarted = true;
+            gameState.currentPlayer = 'player';
+            gameMessageEl.textContent = "你的回合：请选择1-7张牌出牌";
+            
+            // 启用/禁用按钮
+            startBtn.disabled = true;
+            playCardsBtn.disabled = false;
+            guessBlackBtn.disabled = true;
+            guessRedBtn.disabled = true;
+            guessEqualBtn.disabled = true;
+            
+            updateUI();
+        }
+        
+        // 更新UI
+        function updateUI() {
+            // 更新玩家手牌
+            playerCardsEl.innerHTML = '';
+            gameState.playerCards.forEach((card, index) => {
+                const cardEl = createCardElement(card, index, 'player');
+                playerCardsEl.appendChild(cardEl);
+            });
+            
+            // 更新AI手牌（背面显示）
+            aiCardsEl.innerHTML = '';
+            gameState.aiCards.forEach((card, index) => {
+                const cardEl = createCardElement(card, index, 'ai');
+                aiCardsEl.appendChild(cardEl);
+            });
+            
+            // 更新出牌区
+            betCardsEl.innerHTML = '';
+            gameState.betCards.forEach((card, index) => {
+                const cardEl = createCardElement(card, index, 'bet');
+                betCardsEl.appendChild(cardEl);
+            });
+            
+            // 更新牌数
+            playerCountEl.textContent = gameState.playerCards.length;
+            aiCountEl.textContent = gameState.aiCards.length;
+            
+            // 高亮当前回合的玩家区域
+            document.querySelector('.player-area').classList.toggle('current-turn', gameState.currentPlayer === 'player');
+            document.querySelector('.ai-area').classList.toggle('current-turn', gameState.currentPlayer === 'ai');
+            
+            // 更新选择计数
+            updateSelectionCount();
+        }
+        
+        // 创建卡牌元素
+        function createCardElement(card, index, owner) {
+            const cardEl = document.createElement('div');
+            
+            // 决定卡牌显示方式
+            let displayType = 'front';
+            if (owner === 'ai') {
+                // AI的手牌始终显示背面
+                displayType = 'back';
+            } else if (owner === 'bet') {
+                // 出牌区的牌：如果已揭晓则显示正面，否则显示背面
+                displayType = gameState.betCardsRevealed ? 'front' : 'back';
+            }
+            
+            cardEl.className = `card ${displayType === 'back' ? 'back' : card.color}`;
+            cardEl.dataset.id = card.id; // 添加数据标识
+            
+            if (displayType === 'back') {
+                // 显示背面
+                cardEl.innerHTML = `
+                    <div class="card-corner"></div>
+                    <div class="card-suit"></div>
+                    <div class="card-value"></div>
+                `;
+            } else {
+                // 显示正面
+                cardEl.innerHTML = `
+                    <div class="card-corner">${card.value}${card.suit}</div>
+                    <div class="card-suit">${card.suit}</div>
+                    <div class="card-value">${card.value}${card.suit}</div>
+                `;
+            }
+            
+            // 如果是玩家的牌，添加点击事件
+            if (owner === 'player' && gameState.currentPlayer === 'player' && gameState.gameStarted) {
+                cardEl.addEventListener('click', () => selectCard(card.id));
+            }
+            
+            // 如果牌被选中，添加选中样式
+            if (gameState.playerSelectedCards.includes(card.id)) {
+                cardEl.classList.add('selected');
+            }
+            
+            return cardEl;
+        }
+        
+        // 更新选择计数显示
+        function updateSelectionCount() {
+            const count = gameState.playerSelectedCards.length;
+            const max = Math.min(gameState.maxBetCards, gameState.playerCards.length);
+            selectionCountEl.textContent = `已选择 ${count} 张牌 (最多${max}张)`;
+        }
+        
+        // 选择卡牌
+        function selectCard(cardId) {
+            if (gameState.currentPlayer !== 'player' || !gameState.gameStarted) return;
+            
+            const maxSelect = Math.min(gameState.maxBetCards, gameState.playerCards.length);
+            
+            if (gameState.playerSelectedCards.includes(cardId)) {
+                // 取消选择
+                gameState.playerSelectedCards = gameState.playerSelectedCards.filter(id => id !== cardId);
+            } else {
+                // 选择牌
+                if (gameState.playerSelectedCards.length < maxSelect) {
+                    gameState.playerSelectedCards.push(cardId);
+                } else {
+                    gameMessageEl.textContent = `最多只能选择${maxSelect}张牌`;
+                    return;
+                }
+            }
+            
+            updateUI();
+            
+            // 更新消息
+            if (gameState.playerSelectedCards.length > 0) {
+                gameMessageEl.textContent = `已选择 ${gameState.playerSelectedCards.length} 张牌，点击"出牌"按钮确认`;
+            } else {
+                gameMessageEl.textContent = "你的回合：请选择1-7张牌出牌";
+            }
+        }
+        
+        // 玩家出牌
+        function playerPlayCards() {
+            if (gameState.currentPlayer !== 'player' || !gameState.gameStarted) return;
+            
+            if (gameState.playerSelectedCards.length === 0) {
+                gameMessageEl.textContent = "请至少选择一张牌出牌";
+                return;
+            }
+            
+            if (gameState.playerSelectedCards.length > gameState.maxBetCards) {
+                gameMessageEl.textContent = `每次最多只能出${gameState.maxBetCards}张牌`;
+                return;
+            }
+            
+            // 将选中的牌移到出牌区
+            const selectedCards = gameState.playerCards.filter(card => 
+                gameState.playerSelectedCards.includes(card.id)
+            );
+            
+            // 从玩家手牌中移除选中的牌
+            gameState.playerCards = gameState.playerCards.filter(card => 
+                !gameState.playerSelectedCards.includes(card.id)
+            );
+            
+            // 添加到出牌区
+            gameState.betCards = selectedCards;
+            gameState.currentBetCount = selectedCards.length;
+            gameState.playerSelectedCards = [];
+            gameState.betCardsRevealed = false; // 出牌区的牌未揭晓
+            
+            // 切换到AI猜测
+            gameState.currentPlayer = 'ai';
+            gameMessageEl.textContent = "AI正在思考...";
+            
+            // 禁用出牌按钮
+            playCardsBtn.disabled = true;
+            
+            // 更新UI
+            updateUI();
+            
+            // AI在1.5秒后做出猜测
+            setTimeout(aiGuess, 1500);
+        }
+        
+        // AI猜测
+        function aiGuess() {
+            if (gameState.currentPlayer !== 'ai' || !gameState.gameStarted) return;
+            
+            // 计算黑色和红色牌的数量
+            let blackCount = 0;
+            let redCount = 0;
+            
+            gameState.betCards.forEach(card => {
+                if (card.isRed) {
+                    redCount++;
+                } else {
+                    blackCount++;
+                }
+            });
+            
+            // AI根据概率做出猜测，但有20%的概率故意猜错
+            let aiGuess;
+            const shouldMakeError = Math.random() < gameState.aiErrorRate;
+            
+            if (shouldMakeError) {
+                // AI故意猜错
+                if (blackCount > redCount) {
+                    aiGuess = Math.random() > 0.5 ? 'red' : 'equal';
+                } else if (redCount > blackCount) {
+                    aiGuess = Math.random() > 0.5 ? 'black' : 'equal';
+                } else {
+                    aiGuess = Math.random() > 0.5 ? 'black' : 'red';
+                }
+            } else {
+                // AI正常猜测
+                if (blackCount > redCount) {
+                    aiGuess = 'black';
+                } else if (redCount > blackCount) {
+                    aiGuess = 'red';
+                } else {
+                    aiGuess = 'equal';
+                }
+            }
+            
+            // 显示AI的猜测
+            let guessText = '';
+            if (aiGuess === 'black') {
+                guessText = '黑色多';
+            } else if (aiGuess === 'red') {
+                guessText = '红色多';
+            } else {
+                guessText = '一样多';
+            }
+            gameMessageEl.textContent = `AI猜测是${guessText}`;
+            
+            // 判断猜测结果
+            const correctGuess = (aiGuess === 'black' && blackCount > redCount) || 
+                                (aiGuess === 'red' && redCount > blackCount) ||
+                                (aiGuess === 'equal' && blackCount === redCount);
+            
+            // 1秒后显示结果
+            setTimeout(() => {
+                // 揭晓牌面
+                gameState.betCardsRevealed = true;
+                updateUI();
+                
+                if (correctGuess) {
+                    // AI猜对了，牌给AI
+                    gameState.aiCards = gameState.aiCards.concat(gameState.betCards);
+                    gameMessageEl.innerHTML = `<div class="result-message">AI猜对了！AI获得了${gameState.betCards.length}张牌</div>`;
+                } else {
+                    // AI猜错了，牌给玩家
+                    gameState.playerCards = gameState.playerCards.concat(gameState.betCards);
+                    gameMessageEl.innerHTML = `<div class="result-message">AI猜错了！你获得了${gameState.betCards.length}张牌</div>`;
+                }
+                
+                // 显示实际结果
+                let actualResult = '';
+                if (blackCount > redCount) {
+                    actualResult = `实际是黑色多（${blackCount}黑 ${redCount}红）`;
+                } else if (redCount > blackCount) {
+                    actualResult = `实际是红色多（${blackCount}黑 ${redCount}红）`;
+                } else {
+                    actualResult = `实际是一样多（${blackCount}黑 ${redCount}红）`;
+                }
+                gameMessageEl.innerHTML += `<div class="result-message">${actualResult}</div>`;
+                
+                gameState.betCards = [];
+                
+                // 检查游戏是否结束
+                if (checkGameOver()) {
+                    return;
+                }
+                
+                // 延迟2秒后切换到AI出牌
+                setTimeout(() => {
+                    // 切换到AI出牌，玩家猜测
+                    gameState.currentPlayer = 'ai';
+                    
+                    // 2秒后AI出牌
+                    setTimeout(aiPlayCards, 2000);
+                }, 2000);
+            }, 1000);
+        }
+        
+        // AI出牌
+        function aiPlayCards() {
+            if (gameState.currentPlayer !== 'ai' || !gameState.gameStarted) return;
+            
+            gameMessageEl.textContent = "AI正在出牌...";
+            
+            // AI随机选择1-7张牌（不超过手牌数）
+            const maxCards = Math.min(gameState.maxBetCards, gameState.aiCards.length);
+            const numCards = Math.floor(Math.random() * maxCards) + 1;
+            
+            // 随机选择牌
+            const selectedCards = [];
+            for (let i = 0; i < numCards; i++) {
+                if (gameState.aiCards.length === 0) break;
+                const randomIndex = Math.floor(Math.random() * gameState.aiCards.length);
+                selectedCards.push(gameState.aiCards[randomIndex]);
+                gameState.aiCards.splice(randomIndex, 1);
+            }
+            
+            // 添加到出牌区
+            gameState.betCards = selectedCards;
+            gameState.currentBetCount = selectedCards.length;
+            gameState.betCardsRevealed = false; // 出牌区的牌未揭晓
+            
+            // 更新UI
+            updateUI();
+            
+            gameMessageEl.textContent = `AI出了${numCards}张牌，请猜测是黑色多、红色多还是一样多`;
+            
+            // 切换到玩家猜测
+            gameState.currentPlayer = 'player';
+            
+            // 启用猜测按钮
+            guessBlackBtn.disabled = false;
+            guessRedBtn.disabled = false;
+            guessEqualBtn.disabled = false;
+        }
+        
+        // 玩家猜测
+        function playerGuess(guess) {
+            if (gameState.currentPlayer !== 'player' || !gameState.gameStarted) return;
+            
+            // 计算黑色和红色牌的数量
+            let blackCount = 0;
+            let redCount = 0;
+            
+            gameState.betCards.forEach(card => {
+                if (card.isRed) {
+                    redCount++;
+                } else {
+                    blackCount++;
+                }
+            });
+            
+            // 显示玩家的猜测
+            let guessText = '';
+            if (guess === 'black') {
+                guessText = '黑色多';
+            } else if (guess === 'red') {
+                guessText = '红色多';
+            } else {
+                guessText = '一样多';
+            }
+            gameMessageEl.textContent = `你猜测是${guessText}`;
+            
+            // 判断猜测结果
+            const correctGuess = (guess === 'black' && blackCount > redCount) || 
+                                (guess === 'red' && redCount > blackCount) ||
+                                (guess === 'equal' && blackCount === redCount);
+            
+            // 禁用猜测按钮
+            guessBlackBtn.disabled = true;
+            guessRedBtn.disabled = true;
+            guessEqualBtn.disabled = true;
+            
+            // 1秒后显示结果
+            setTimeout(() => {
+                // 揭晓牌面
+                gameState.betCardsRevealed = true;
+                updateUI();
+                
+                if (correctGuess) {
+                    // 玩家猜对了，牌给玩家
+                    gameState.playerCards = gameState.playerCards.concat(gameState.betCards);
+                    gameMessageEl.innerHTML = `<div class="result-message">你猜对了！你获得了${gameState.betCards.length}张牌</div>`;
+                } else {
+                    // 玩家猜错了，牌给AI
+                    gameState.aiCards = gameState.aiCards.concat(gameState.betCards);
+                    gameMessageEl.innerHTML = `<div class="result-message">你猜错了！AI获得了${gameState.betCards.length}张牌</div>`;
+                }
+                
+                // 显示实际结果
+                let actualResult = '';
+                if (blackCount > redCount) {
+                    actualResult = `实际是黑色多（${blackCount}黑 ${redCount}红）`;
+                } else if (redCount > blackCount) {
+                    actualResult = `实际是红色多（${blackCount}黑 ${redCount}红）`;
+                } else {
+                    actualResult = `实际是一样多（${blackCount}黑 ${redCount}红）`;
+                }
+                gameMessageEl.innerHTML += `<div class="result-message">${actualResult}</div>`;
+                
+                gameState.betCards = [];
+                
+                // 检查游戏是否结束
+                if (checkGameOver()) {
+                    return;
+                }
+                
+                // 延迟2秒后切换到玩家出牌
+                setTimeout(() => {
+                    // 切换到玩家出牌，AI猜测
+                    gameState.currentPlayer = 'player';
+                    gameMessageEl.textContent = "你的回合：请选择1-7张牌出牌";
+                    
+                    // 启用出牌按钮
+                    playCardsBtn.disabled = false;
+                    
+                    updateUI();
+                }, 2000);
+            }, 1000);
+        }
+        
+        // 检查游戏是否结束
+        function checkGameOver() {
+            if (gameState.playerCards.length === 0) {
+                gameMessageEl.textContent = "游戏结束！AI获胜！";
+                endGame();
+                return true;
+            } else if (gameState.aiCards.length === 0) {
+                gameMessageEl.textContent = "游戏结束！你获胜了！";
+                endGame();
+                return true;
+            }
+            return false;
+        }
+        
+        // 结束游戏
+        function endGame() {
+            gameState.gameStarted = false;
+            
+            // 禁用所有游戏按钮
+            playCardsBtn.disabled = true;
+            guessBlackBtn.disabled = true;
+            guessRedBtn.disabled = true;
+            guessEqualBtn.disabled = true;
+        }
+        
+        // 页面缩放功能
+        let currentZoom = 100;
+        
+        function zoomPage(zoomLevel) {
+            document.body.style.zoom = `${zoomLevel}%`;
+            currentZoom = zoomLevel;
+        }
+        
+        // 随机切换背景主题
+        function changeBackgroundTheme() {
+            const randomIndex = Math.floor(Math.random() * backgroundThemes.length);
+            document.body.style.background = backgroundThemes[randomIndex];
+        }
+        
+        // 事件监听器
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', initGame);
+        playCardsBtn.addEventListener('click', playerPlayCards);
+        guessBlackBtn.addEventListener('click', () => playerGuess('black'));
+        guessRedBtn.addEventListener('click', () => playerGuess('red'));
+        guessEqualBtn.addEventListener('click', () => playerGuess('equal'));
+        
+        zoomInBtn.addEventListener('click', () => {
+            if (currentZoom < 150) {
+                zoomPage(currentZoom + 10);
+            }
+        });
+        
+        zoomOutBtn.addEventListener('click', () => {
+            if (currentZoom > 50) {
+                zoomPage(currentZoom - 10);
+            }
+        });
+        
+        resetZoomBtn.addEventListener('click', () => {
+            zoomPage(100);
+        });
+        
+        changeThemeBtn.addEventListener('click', changeBackgroundTheme);
+        
+        // 初始化游戏
+        initGame();
+        
+        // 页面加载时随机选择背景主题
+        window.addEventListener('load', changeBackgroundTheme);
+    </script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神秘空间 - 第1个球</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 25%, #16213e 50%, #0f3460 75%, #0a0e27 100%);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+        }
+        
+        /* 动态背景效果 */
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 星星背景 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        /* 主容器 */
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 标题 */
+        .title {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(100, 150, 255, 0.8);
+            letter-spacing: 3px;
+            z-index: 100;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            from { text-shadow: 0 0 20px rgba(100, 150, 255, 0.8); }
+            to { text-shadow: 0 0 30px rgba(100, 150, 255, 1), 0 0 40px rgba(100, 150, 255, 0.6); }
+        }
+        
+        /* 三角形布局容器 */
+        .triangle-layout {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            max-width: 85vw;
+            max-height: 85vw;
+        }
+        
+        /* 中心球体 */
+        .center-sphere {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #4a90e2, #1a5490);
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(74, 144, 226, 0.8), 
+                        0 0 80px rgba(74, 144, 226, 0.5),
+                        inset -15px -15px 25px rgba(0, 0, 0, 0.3),
+                        inset 8px 8px 15px rgba(255, 255, 255, 0.3);
+            animation: spherePulse 2s ease-in-out infinite, sphereRotate 12s linear infinite;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .center-sphere:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 0 60px rgba(74, 144, 226, 1), 
+                        0 0 100px rgba(74, 144, 226, 0.7);
+        }
+        
+        @keyframes spherePulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+        
+        @keyframes sphereRotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        /* 三角形旋转容器 */
+        .triangle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            animation: containerRotate 25s linear infinite;
+        }
+        
+        @keyframes containerRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 三角形按钮 */
+        .triangle-btn {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            z-index: 5;
+        }
+        
+        .triangle-btn::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            filter: blur(12px);
+            opacity: 0.6;
+            z-index: -1;
+            transform: scale(1.3);
+        }
+        
+        .triangle-btn:hover {
+            transform: scale(1.2);
+            filter: brightness(1.3) drop-shadow(0 0 15px currentColor);
+        }
+        
+        .triangle-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(1) brightness(0.5);
+        }
+        
+        .triangle-btn.disabled:hover {
+            transform: scale(1);
+            filter: grayscale(1) brightness(0.5);
+        }
+        
+        /* 8个三角形的位置 - 围绕中心球形成圆形 */
+        .triangle-1 { 
+            top: 8%; 
+            left: 50%; 
+            transform: translateX(-50%) rotate(0deg);
+        }
+        .triangle-2 { 
+            top: 22%; 
+            right: 12%; 
+            transform: rotate(45deg);
+        }
+        .triangle-3 { 
+            top: 50%; 
+            right: 8%; 
+            transform: rotate(90deg);
+        }
+        .triangle-4 { 
+            bottom: 22%; 
+            right: 12%; 
+            transform: rotate(135deg);
+        }
+        .triangle-5 { 
+            bottom: 8%; 
+            left: 50%; 
+            transform: translateX(-50%) rotate(180deg);
+        }
+        .triangle-6 { 
+            bottom: 22%; 
+            left: 12%; 
+            transform: rotate(225deg);
+        }
+        .triangle-7 { 
+            top: 50%; 
+            left: 8%; 
+            transform: rotate(270deg);
+        }
+        .triangle-8 { 
+            top: 22%; 
+            left: 12%; 
+            transform: rotate(315deg);
+        }
+        
+        /* 连接线 */
+        .connection-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .connection-line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.4), transparent);
+            height: 1px;
+            transform-origin: left center;
+            animation: lineFlow 3s linear infinite;
+        }
+        
+        @keyframes lineFlow {
+            from { background-position: -100px 0; }
+            to { background-position: 100px 0; }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .triangle-layout {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .center-sphere {
+                width: 80px;
+                height: 80px;
+                font-size: 1.5rem;
+            }
+            
+            .triangle-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 1.2rem;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+                top: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .triangle-layout {
+                width: 280px;
+                height: 280px;
+            }
+            
+            .center-sphere {
+                width: 65px;
+                height: 65px;
+                font-size: 1.2rem;
+            }
+            
+            .triangle-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1rem;
+            }
+            
+            .title {
+                font-size: 1.2rem;
+                top: 15px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .triangle-layout {
+                width: 240px;
+                height: 240px;
+            }
+            
+            .triangle-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="container">
+        <h1 class="title">破解工具</h1>
+        
+        <div class="triangle-layout">
+            <div class="center-sphere" id="centerSphere">🌌</div>
+            
+            <div class="triangle-container">
+                <!-- 8个三角形按钮 -->
+                <div class="triangle-btn triangle-1" data-index="0"></div>
+                <div class="triangle-btn triangle-2" data-index="1"></div>
+                <div class="triangle-btn triangle-3" data-index="2"></div>
+                <div class="triangle-btn triangle-4" data-index="3"></div>
+                <div class="triangle-btn triangle-5" data-index="4"></div>
+                <div class="triangle-btn triangle-6" data-index="5"></div>
+                <div class="triangle-btn triangle-7" data-index="6"></div>
+                <div class="triangle-btn triangle-8" data-index="7"></div>
+            </div>
+            
+            <div class="connection-lines">
+                <div class="connection-line" style="width: 150px; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg);"></div>
+                <div class="connection-line" style="width: 150px; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);"></div>
+                <div class="connection-line" style="width: 150px; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(90deg);"></div>
+                <div class="connection-line" style="width: 150px; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(135deg);"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 配置文件 -->
+    <script src="12.search-config.js"></script>
+    
+    <script>
+        // 创建星星背景
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 30;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // 随机大小
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                
+                // 随机位置
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                
+                // 随机延迟
+                star.style.animationDelay = Math.random() * 3 + 's';
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // 初始化三角形按钮
+        function initTriangles() {
+            const tools = window.triangleNavConfig.getAllTools();
+            const triangles = document.querySelectorAll('.triangle-btn');
+            
+            triangles.forEach((triangle, index) => {
+                const tool = tools[index];
+                if (tool) {
+                    triangle.innerHTML = tool.icon;
+                    triangle.style.background = `linear-gradient(135deg, ${tool.color}, ${adjustColor(tool.color, -40)})`;
+                    triangle.title = tool.name;
+                    
+                    if (window.triangleNavConfig.isToolAvailable(tool)) {
+                        triangle.classList.remove('disabled');
+                        triangle.addEventListener('click', () => {
+                            window.location.href = tool.file;
+                        });
+                    } else {
+                        triangle.classList.add('disabled');
+                    }
+                } else {
+                    triangle.classList.add('disabled');
+                }
+            });
+        }
+        
+        // 颜色调整函数
+        function adjustColor(color, amount) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+            const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
+            const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
+            return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+        }
+        
+        // 中心球点击事件
+        document.getElementById('centerSphere').addEventListener('click', function() {
+            // 添加点击动画
+            this.style.animation = 'none';
+            setTimeout(() => {
+                this.style.animation = 'spherePulse 2s ease-in-out infinite, sphereRotate 12s linear infinite';
+            }, 10);
+            
+            // 随机跳转到一个可用工具
+            const tools = window.triangleNavConfig.getAllTools();
+            const availableTools = tools.filter(tool => window.triangleNavConfig.isToolAvailable(tool));
+            if (availableTools.length > 0) {
+                const randomTool = availableTools[Math.floor(Math.random() * availableTools.length)];
+                window.location.href = randomTool.file;
+            }
+        });
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            // 检查配置是否加载
+            if (window.triangleNavConfig) {
+                initTriangles();
+            } else {
+                console.error('配置文件加载失败');
+                return;
+            }
+            
+            // 创建星星背景
+            createStars();
+            
+            // 添加键盘快捷键支持
+            document.addEventListener('keydown', function(e) {
+                if (e.key >= '1' && e.key <= '8') {
+                    const index = parseInt(e.key) - 1;
+                    const tools = window.triangleNavConfig.getAllTools();
+                    const tool = tools[index];
+                    if (tool && window.triangleNavConfig.isToolAvailable(tool)) {
+                        window.location.href = tool.file;
+                    }
+                }
+            });
+        });
+        
+        // 页面可见性改变时的处理
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // 页面隐藏时暂停动画
+                document.querySelector('.triangle-container').style.animationPlayState = 'paused';
+                document.querySelector('.center-sphere').style.animationPlayState = 'paused';
+            } else {
+                // 页面显示时恢复动画
+                document.querySelector('.triangle-container').style.animationPlayState = 'running';
+                document.querySelector('.center-sphere').style.animationPlayState = 'running';
+            }
+        });
+    </script>
+</body>
+</html>

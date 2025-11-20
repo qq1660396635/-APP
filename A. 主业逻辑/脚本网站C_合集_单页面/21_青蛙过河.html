@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>青蛙垂直跳跃 - 五层挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            transition: background 0.5s ease;
+            touch-action: none;
+        }
+        
+        .game-wrapper {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 90vw;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            transform-origin: center center;
+            transform: scale(1);
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .stat {
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .lives {
+            color: #e53e3e;
+        }
+        
+        .level {
+            color: #9333ea;
+        }
+        
+        .high-score {
+            color: #f59e0b;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #4a5568;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 20%, #4682B4 20%, #4682B4 80%, #90EE90 80%, #90EE90 100%);
+            touch-action: none;
+            width: 100%;
+            height: auto;
+            max-height: 60vh;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: #48bb78;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            min-width: 80px;
+        }
+        
+        .control-btn:active {
+            background: #38a169;
+            transform: scale(0.95);
+        }
+        
+        .action-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            touch-action: manipulation;
+        }
+        
+        .action-btn:hover {
+            background: #3182ce;
+        }
+        
+        .message {
+            min-height: 25px;
+            color: #e53e3e;
+            font-weight: bold;
+            margin: 5px 0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .success {
+            color: #38a169;
+        }
+        
+        .warning {
+            color: #f59e0b;
+        }
+        
+        .level-complete {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            z-index: 1000;
+            animation: bounceIn 0.5s ease-out;
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .level-complete h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+        
+        .level-complete p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        .level-complete button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            touch-action: manipulation;
+        }
+        
+        .level-complete button:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 缩放控制按钮 */
+        .zoom-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999;
+        }
+        
+        .zoom-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        
+        .zoom-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        
+        .zoom-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .zoom-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .zoom-level {
+            position: fixed;
+            bottom: 130px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 998;
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .game-stats {
+                font-size: 1em;
+            }
+            
+            .control-btn {
+                padding: 10px 15px;
+                font-size: 16px;
+                min-width: 70px;
+            }
+            
+            .zoom-controls {
+                bottom: 15px;
+                right: 15px;
+            }
+            
+            .zoom-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper" id="gameWrapper">
+        <div class="game-header">
+            <h1>🐸 青蛙垂直跳跃 🐸</h1>
+        </div>
+        
+        <div class="game-stats">
+            <div class="stat">得分: <span id="score">0</span></div>
+            <div class="stat level">关卡: <span id="level">1</span></div>
+            <div class="stat high-score">最高分: <span id="highScore">0</span></div>
+            <div class="stat lives">生命: <span id="lives">3</span> ❤️</div>
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <canvas id="gameCanvas" width="400" height="700"></canvas>
+        
+        <div class="controls">
+            <button class="control-btn" id="leftBtn">⬅ 左</button>
+            <button class="control-btn" id="jumpBtn">🦘 跳跃</button>
+            <button class="control-btn" id="rightBtn">➡ 右</button>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="action-btn" onclick="resetGame()">重新开始</button>
+            <button class="action-btn" onclick="togglePause()">暂停</button>
+        </div>
+    </div>
+    
+    <!-- 缩放控制 -->
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="zoomInBtn">+</button>
+        <button class="zoom-btn" id="zoomOutBtn">−</button>
+    </div>
+    <div class="zoom-level" id="zoomLevel">100%</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameWrapper = document.getElementById('gameWrapper');
+        
+        // 随机渐变背景数组
+        const gradients = [
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+            'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+            'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)'
+        ];
+        
+        // 设置随机背景
+        document.body.style.background = gradients[Math.floor(Math.random() * gradients.length)];
+        
+        // 缩放相关变量
+        let currentScale = 1;
+        const minScale = 0.5;
+        const maxScale = 1.5;
+        const scaleStep = 0.1;
+        
+        // 从localStorage读取缩放设置
+        const savedScale = localStorage.getItem('gameScale');
+        if (savedScale) {
+            currentScale = parseFloat(savedScale);
+            updateZoom();
+        }
+        
+        // 缩放功能
+        function zoomIn() {
+            console.log('Zoom in clicked, current scale:', currentScale);
+            if (currentScale < maxScale) {
+                currentScale += scaleStep;
+                updateZoom();
+                saveZoom();
+                console.log('New scale after zoom in:', currentScale);
+            }
+        }
+        
+        function zoomOut() {
+            console.log('Zoom out clicked, current scale:', currentScale);
+            if (currentScale > minScale) {
+                currentScale -= scaleStep;
+                updateZoom();
+                saveZoom();
+                console.log('New scale after zoom out:', currentScale);
+            }
+        }
+        
+        function updateZoom() {
+            console.log('Updating zoom to:', currentScale);
+            
+            // 调整缩放，确保所有元素都可见
+            gameWrapper.style.transform = `scale(${currentScale})`;
+            
+            // 根据缩放调整容器高度，确保按钮可见
+            if (currentScale > 1) {
+                gameWrapper.style.marginTop = `-${(currentScale - 1) * 100}px`;
+                gameWrapper.style.marginBottom = `-${(currentScale - 1) * 50}px`;
+            } else {
+                gameWrapper.style.marginTop = '0';
+                gameWrapper.style.marginBottom = '0';
+            }
+            
+            document.getElementById('zoomLevel').textContent = Math.round(currentScale * 100) + '%';
+            
+            // 更新按钮状态
+            document.getElementById('zoomInBtn').disabled = currentScale >= maxScale;
+            document.getElementById('zoomOutBtn').disabled = currentScale <= minScale;
+        }
+        
+        function saveZoom() {
+            localStorage.setItem('gameScale', currentScale.toString());
+        }
+        
+        // 绑定缩放按钮事件
+        document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
+        document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
+        
+        // 添加触摸事件支持
+        document.getElementById('zoomInBtn').addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            zoomIn();
+        });
+        
+        document.getElementById('zoomOutBtn').addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            zoomOut();
+        });
+        
+        // 游戏状态
+        let gameRunning = true;
+        let score = 0;
+        let lives = 3;
+        let currentLevel = 1;
+        let animationId;
+        let levelComplete = false;
+        let highScore = localStorage.getItem('frogHighScore') || 0;
+        
+        // 青蛙对象
+        const frog = {
+            x: canvas.width / 2 - 20,
+            y: canvas.height - 80,
+            width: 40,
+            height: 40,
+            targetY: canvas.height - 80,
+            jumping: false,
+            jumpSpeed: 8,
+            currentPlatformIndex: 0,
+            moveSpeed: 5  // 新增
+        };
+        
+        // 平台数组（5层）
+        let platforms = [];
+        let wallSpikes = [];
+        
+        // 生成关卡
+        function generateLevel(level) {
+            platforms = [];
+            wallSpikes = [];
+            
+            // 根据关卡调整难度
+            const baseSpeed = 0.8 + (level - 1) * 0.2;
+            
+            // 起点平台（最底部）
+            platforms.push({
+                y: canvas.height - 100,
+                width: 140,
+                speed: 0,
+                direction: 1,
+                x: canvas.width / 2 - 70,
+                isStart: true
+            });
+            
+            // 5层中间平台
+            for (let i = 1; i <= 5; i++) {
+                const y = canvas.height - 100 - (i * 100);
+                const width = 70 + Math.random() * 50;
+                const speed = baseSpeed * (0.7 + Math.random() * 0.6);
+                const direction = Math.random() > 0.5 ? 1 : -1;
+                const x = Math.random() * (canvas.width - width);
+                
+                platforms.push({
+                    y: y,
+                    width: width,
+                    speed: speed,
+                    direction: direction,
+                    x: x,
+                    isStart: false
+                });
+            }
+            
+            // 终点平台（最顶部）
+            platforms.push({
+                y: 80,
+                width: 120,
+                speed: 0,
+                direction: 1,
+                x: canvas.width / 2 - 60,
+                isEnd: true
+            });
+            
+            // 生成墙壁棱锥
+            platforms.forEach((platform, index) => {
+                if (!platform.isStart && !platform.isEnd) {
+                    // 左墙棱锥
+                    wallSpikes.push({
+                        x: 0,
+                        y: platform.y - 20,
+                        width: 30,
+                        height: 40,
+                        platformIndex: index,
+                        side: 'left'
+                    });
+                    // 右墙棱锥
+                    wallSpikes.push({
+                        x: canvas.width - 30,
+                        y: platform.y - 20,
+                        width: 30,
+                        height: 40,
+                        platformIndex: index,
+                        side: 'right'
+                    });
+                }
+            });
+        }
+        
+        // 绘制青蛙
+        function drawFrog() {
+            // 青蛙身体
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.ellipse(frog.x + frog.width/2, frog.y + frog.height/2, 
+                       frog.width/2, frog.height/2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 青蛙眼睛
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(frog.x + 10, frog.y + 10, 8, 0, Math.PI * 2);
+            ctx.arc(frog.x + 30, frog.y + 10, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 眼珠
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(frog.x + 10, frog.y + 10, 4, 0, Math.PI * 2);
+            ctx.arc(frog.x + 30, frog.y + 10, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 跳跃时的腿部动画
+            if (frog.jumping) {
+                ctx.strokeStyle = '#2E7D32';
+                ctx.lineWidth = 3;
+                // 左腿
+                ctx.beginPath();
+                ctx.moveTo(frog.x + 10, frog.y + 25);
+                ctx.lineTo(frog.x + 5, frog.y + 35);
+                ctx.stroke();
+                // 右腿
+                ctx.beginPath();
+                ctx.moveTo(frog.x + 30, frog.y + 25);
+                ctx.lineTo(frog.x + 35, frog.y + 35);
+                ctx.stroke();
+            }
+        }
+        
+        // 绘制平台
+        function drawPlatforms() {
+            platforms.forEach((platform, index) => {
+                // 平台主体
+                let gradient;
+                if (platform.isEnd) {
+                    gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + 20);
+                    gradient.addColorStop(0, '#FFD700');
+                    gradient.addColorStop(1, '#FFA500');
+                } else if (platform.isStart) {
+                    gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + 20);
+                    gradient.addColorStop(0, '#90EE90');
+                    gradient.addColorStop(1, '#7CB342');
+                } else {
+                    gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + 20);
+                    gradient.addColorStop(0, '#8B4513');
+                    gradient.addColorStop(1, '#654321');
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(platform.x, platform.y, platform.width, 20);
+                
+                // 平台纹理
+                if (!platform.isEnd && !platform.isStart) {
+                    ctx.strokeStyle = '#5a3a1a';
+                    ctx.lineWidth = 2;
+                    for (let i = 10; i < platform.width; i += 20) {
+                        ctx.beginPath();
+                        ctx.moveTo(platform.x + i, platform.y);
+                        ctx.lineTo(platform.x + i, platform.y + 20);
+                        ctx.stroke();
+                    }
+                }
+                
+                // 终点标记
+                if (platform.isEnd) {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🏁 终点 🏁', platform.x + platform.width/2, platform.y - 10);
+                }
+                
+                // 起点标记
+                if (platform.isStart) {
+                    ctx.fillStyle = '#2E7D32';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('起点', platform.x + platform.width/2, platform.y - 10);
+                }
+            });
+        }
+        
+        // 绘制墙壁棱锥
+        function drawWallSpikes() {
+            wallSpikes.forEach(spike => {
+                ctx.fillStyle = '#DC143C';
+                ctx.beginPath();
+                
+                if (spike.side === 'left') {
+                    // 左墙棱锥（向右的三角形）
+                    ctx.moveTo(spike.x, spike.y);
+                    ctx.lineTo(spike.x + spike.width, spike.y + spike.height/2);
+                    ctx.lineTo(spike.x, spike.y + spike.height);
+                } else {
+                    // 右墙棱锥（向左的三角形）
+                    ctx.moveTo(spike.x + spike.width, spike.y);
+                    ctx.lineTo(spike.x, spike.y + spike.height/2);
+                    ctx.lineTo(spike.x + spike.width, spike.y + spike.height);
+                }
+                
+                ctx.closePath();
+                ctx.fill();
+                
+                // 棱锥边框
+                ctx.strokeStyle = '#8B0000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+        }
+        
+        // 绘制场景
+        function drawScene() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景区域
+            // 天空区域
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, 100);
+            
+            // 河流区域
+            ctx.fillStyle = '#4682B4';
+            ctx.fillRect(0, 100, canvas.width, canvas.height - 200);
+            
+            // 河流波纹
+            ctx.strokeStyle = '#5a9fd4';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 10; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 120 + i * 60);
+                for (let x = 0; x < canvas.width; x += 20) {
+                    ctx.lineTo(x, 120 + i * 60 + Math.sin(x * 0.1 + Date.now() * 0.001) * 3);
+                }
+                ctx.stroke();
+            }
+            
+            // 起点草地
+            ctx.fillStyle = '#90EE90';
+            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+            
+            // 绘制游戏元素
+            drawPlatforms();
+            drawWallSpikes();
+            drawFrog();
+        }
+        
+        // 更新游戏
+        function update() {
+            if (!gameRunning || levelComplete) return;
+            
+            // 更新平台位置
+            platforms.forEach(platform => {
+                if (platform.speed !== 0) {
+                    platform.x += platform.speed * platform.direction;
+                    
+                    // 平台边界检测
+                    if (platform.x <= 0 || platform.x + platform.width >= canvas.width) {
+                        platform.direction *= -1;
+                    }
+                }
+            });
+            
+            // 更新青蛙跳跃
+            if (frog.jumping) {
+                if (frog.y > frog.targetY) {
+                    frog.y -= frog.jumpSpeed;
+                } else {
+                    frog.y = frog.targetY;
+                    frog.jumping = false;
+                    checkLanding();
+                }
+            }
+            
+            // 检查青蛙是否在平台上
+            if (!frog.jumping && frog.currentPlatformIndex !== null) {
+                const platform = platforms[frog.currentPlatformIndex];
+                if (platform.speed !== 0) {
+                    frog.x += platform.speed * platform.direction;
+                    
+                    // 修复：只有当青蛙完全离开平台时才检查死亡
+                    const frogCenter = frog.x + frog.width / 2;
+                    if (frogCenter < platform.x - 10 || frogCenter > platform.x + platform.width + 10) {
+                        // 给一点缓冲时间，让玩家有机会跳跃
+                        setTimeout(() => {
+                            if (!frog.jumping && frog.currentPlatformIndex === platforms.indexOf(platform)) {
+                                loseLife();
+                            }
+                        }, 500);
+                    }
+                }
+            }
+            
+            checkCollisions();
+            updateUI();
+        }
+        
+        // 新增左右移动函数
+        function moveLeft() {
+            if (!gameRunning || frog.jumping) return;
+            frog.x -= frog.moveSpeed;
+            if (frog.x < 0) frog.x = 0;
+        }
+
+        function moveRight() {
+            if (!gameRunning || frog.jumping) return;
+            frog.x += frog.moveSpeed;
+            if (frog.x + frog.width > canvas.width) frog.x = canvas.width - frog.width;
+        }
+        
+        // 检查着陆
+        function checkLanding() {
+            let landed = false;
+            
+            // 只检查当前平台上方最近的平台
+            for (let i = frog.currentPlatformIndex + 1; i < platforms.length; i++) {
+                const platform = platforms[i];
+                if (Math.abs(frog.y + frog.height - platform.y) < 10 &&
+                    frog.x + frog.width/2 >= platform.x &&
+                    frog.x + frog.width/2 <= platform.x + platform.width) {
+                    landed = true;
+                    frog.currentPlatformIndex = i;
+                    
+                    // 检查是否到达终点
+                    if (platform.isEnd) {
+                        completeLevel();
+                    } else {
+                        score += 50 * currentLevel; // 根据关卡增加分数
+                        showMessage(`✅ 成功跳跃！+${50 * currentLevel}分`, true);
+                    }
+                    break;
+                }
+            }
+            
+            if (!landed) {
+                // 不死亡，只是没跳上平台
+                frog.jumping = false;
+                frog.targetY = frog.y;
+            }
+        }
+        
+        // 碰撞检测
+        function checkCollisions() {
+            // 检查墙壁棱锥碰撞
+            wallSpikes.forEach(spike => {
+                if (frog.x < spike.x + spike.width &&
+                    frog.x + frog.width > spike.x &&
+                    frog.y < spike.y + spike.height &&
+                    frog.y + frog.height > spike.y) {
+                    loseLife();
+                }
+            });
+        }
+        
+        // 跳跃功能
+        function jump() {
+            if (!gameRunning || frog.jumping || levelComplete) return;
+            
+            // 找到下一个平台（只能是上方最近的平台）
+            const nextPlatformIndex = frog.currentPlatformIndex + 1;
+            
+            if (nextPlatformIndex >= platforms.length) {
+                showMessage('🎉 已经到达最高层！', true);
+                return;
+            }
+            
+            const nextPlatform = platforms[nextPlatformIndex];
+            
+            // 检查下一个平台是否有空间
+            const frogCenterX = frog.x + frog.width/2;
+            if (frogCenterX >= nextPlatform.x - 20 && 
+                frogCenterX <= nextPlatform.x + nextPlatform.width + 20) {
+                frog.jumping = true;
+                frog.targetY = nextPlatform.y - frog.height;
+            } else {
+                showMessage('⚠️ 前方没有桥！危险！', false);
+            }
+        }
+        
+        // 完成关卡
+        function completeLevel() {
+            levelComplete = true;
+            const bonusScore = 300 * currentLevel;
+            score += bonusScore;
+            
+            // 更新最高分
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('frogHighScore', highScore);
+            }
+            
+            // 显示通关提示
+            const completeDiv = document.createElement('div');
+            completeDiv.className = 'level-complete';
+            completeDiv.innerHTML = `
+                <h2>🎉 关卡完成！</h2>
+                <p>恭喜通过第 ${currentLevel} 关！</p>
+                <p>获得 ${bonusScore} 分</p>
+                <p>总分：${score}</p>
+                <button onclick="nextLevel()">下一关 →</button>
+            `;
+            document.body.appendChild(completeDiv);
+        }
+        
+        // 下一关
+        function nextLevel() {
+            // 移除通关提示
+            const completeDiv = document.querySelector('.level-complete');
+            if (completeDiv) {
+                completeDiv.remove();
+            }
+            
+            currentLevel++;
+            levelComplete = false;
+            generateLevel(currentLevel);
+            resetFrogPosition();
+            showMessage(`🎮 第 ${currentLevel} 关开始！`, true);
+            
+            // 每关更换随机背景
+            document.body.style.background = gradients[Math.floor(Math.random() * gradients.length)];
+        }
+        
+        // 失去生命
+        function loseLife() {
+            lives--;
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                showMessage('💔 被墙壁棱锥扎到了！还剩 ' + lives + ' 条生命', false);
+                resetFrogPosition();
+            }
+        }
+        
+        // 重置青蛙位置
+        function resetFrogPosition() {
+            frog.x = canvas.width / 2 - 20;
+            frog.y = canvas.height - 80;
+            frog.targetY = canvas.height - 80;
+            frog.jumping = false;
+            frog.currentPlatformIndex = 0;
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            gameRunning = false;
+            
+            // 更新最高分
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('frogHighScore', highScore);
+            }
+            
+            showMessage('🎮 游戏结束！最终得分：' + score, false);
+        }
+        
+        // 显示消息
+        function showMessage(msg, isSuccess) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = msg;
+            messageEl.className = isSuccess ? 'message success' : 'message warning';
+            setTimeout(() => {
+                messageEl.textContent = '';
+            }, 2500);
+        }
+        
+        // 更新UI
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('level').textContent = currentLevel;
+            document.getElementById('highScore').textContent = highScore;
+        }
+        
+        // 游戏循环
+        function gameLoop() {
+            update();
+            drawScene();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            currentLevel = 1;
+            levelComplete = false;
+            generateLevel(currentLevel);
+            resetFrogPosition();
+            document.body.style.background = gradients[Math.floor(Math.random() * gradients.length)];
+            showMessage('🎮 游戏重新开始！', true);
+        }
+        
+        // 暂停/继续
+        function togglePause() {
+            gameRunning = !gameRunning;
+            if (gameRunning) {
+                showMessage('▶️ 游戏继续！', true);
+            } else {
+                showMessage('⏸️ 游戏暂停', false);
+            }
+        }
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                jump();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                moveLeft();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                moveRight();
+            }
+        });
+        
+        // 触摸控制
+        document.getElementById('jumpBtn').addEventListener('click', jump);
+        document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        });
+        
+        // 绑定左右移动按钮
+        document.getElementById('leftBtn').addEventListener('click', moveLeft);
+        document.getElementById('rightBtn').addEventListener('click', moveRight);
+
+        // 添加触摸事件支持
+        document.getElementById('leftBtn').addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            moveLeft();
+        });
+
+        document.getElementById('rightBtn').addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            moveRight();
+        });
+        
+        // 防止页面滚动的完整方案
+        function preventScroll(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        
+        // 添加所有可能的滚动事件监听器
+        document.addEventListener('touchstart', preventScroll, { passive: false });
+        document.addEventListener('touchmove', preventScroll, { passive: false });
+        document.addEventListener('touchend', preventScroll, { passive: false });
+        document.addEventListener('touchcancel', preventScroll, { passive: false });
+        document.addEventListener('wheel', preventScroll, { passive: false });
+        document.addEventListener('scroll', preventScroll, { passive: false });
+        
+        // 防止双击缩放
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // 防止画布滚动
+        canvas.addEventListener('touchstart', preventScroll, { passive: false });
+        canvas.addEventListener('touchmove', preventScroll, { passive: false });
+        
+        // 初始化游戏
+        generateLevel(currentLevel);
+        gameLoop();
+        showMessage('🐸 使用方向键或按钮控制青蛙！可以左右移动和跳跃！', true);
+    </script>
+</body>
+</html>

@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记忆翻牌大师</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            color: white;
+            transition: background 0.5s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 全新独特背景渐变 */
+        .bg-gradient-1 { 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+        }
+        .bg-gradient-2 { 
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        }
+        .bg-gradient-3 { 
+            background: linear-gradient(135deg, #232526 0%, #414345 50%, #5d6d7e 100%);
+        }
+        .bg-gradient-4 { 
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 50%, #6b3d6b 100%);
+        }
+        .bg-gradient-5 { 
+            background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);
+        }
+        .bg-gradient-6 { 
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        }
+        .bg-gradient-7 { 
+            background: linear-gradient(135deg, #360033 0%, #0b8793 50%, #360033 100%);
+        }
+        .bg-gradient-8 { 
+            background: linear-gradient(135deg, #16222a 0%, #3a6073 50%, #16222a 100%);
+        }
+        .bg-gradient-9 { 
+            background: linear-gradient(135deg, #4b134f 0%, #c94b4b 50%, #4b134f 100%);
+        }
+        .bg-gradient-10 { 
+            background: linear-gradient(135deg, #000428 0%, #004e92 50%, #000428 100%);
+        }
+        .bg-gradient-11 { 
+            background: linear-gradient(135deg, #1d2b64 0%, #f8cdda 50%, #1d2b64 100%);
+        }
+        .bg-gradient-12 { 
+            background: linear-gradient(135deg, #3f2b96 0%, #a8c0ff 50%, #3f2b96 100%);
+        }
+        .bg-image {
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .bg-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        /* 头部样式 */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: slideDown 0.5s ease;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 游戏控制面板 */
+        .control-panel {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.6s ease;
+            max-width: 100%;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .difficulty-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+        }
+
+        .difficulty-btn.hard-mode {
+            background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
+            border-color: #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(220, 20, 60, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(220, 20, 60, 0.8); }
+        }
+
+        /* 游戏信息 */
+        .game-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        /* 背景选择器 */
+        .bg-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .bg-option {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .bg-option:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+
+        .bg-option.active {
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* 游戏板容器 */
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            position: relative;
+        }
+
+        /* 游戏板 */
+        .game-board {
+            display: grid;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.8s ease;
+            width: 100%;
+            aspect-ratio: 1;
+            position: relative;
+        }
+
+        .game-board.easy { 
+            grid-template-columns: repeat(3, 1fr); 
+            grid-template-rows: repeat(4, 1fr);
+        }
+        .game-board.medium { 
+            grid-template-columns: repeat(4, 1fr); 
+            grid-template-rows: repeat(5, 1fr);
+        }
+        .game-board.hard { 
+            grid-template-columns: repeat(6, 1fr); 
+            grid-template-rows: repeat(6, 1fr);
+        }
+
+        /* 卡牌样式 */
+        .card {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            transform-style: preserve-3d;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '?';
+            position: absolute;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+        }
+
+        .card:hover:not(.flipped):not(.matched) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .card.flipped {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            transform: rotateY(180deg);
+            animation: flip 0.6s ease;
+        }
+
+        .card.flipped::before {
+            display: none;
+        }
+
+        .card.flipped .card-content {
+            display: block;
+            font-size: 2rem;
+        }
+
+        .card.matched {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            cursor: default;
+            animation: matchPulse 0.6s ease;
+            pointer-events: none;
+        }
+
+        .card.matched::before {
+            display: none;
+        }
+
+        .card.matched .card-content {
+            display: block;
+            font-size: 2rem;
+        }
+
+        .card-content {
+            display: none;
+            transform: rotateY(180deg);
+        }
+
+        .card.shuffling {
+            animation: shuffle 0.5s ease;
+        }
+
+        @keyframes flip {
+            0% { transform: rotateY(0); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(180deg); }
+        }
+
+        @keyframes matchPulse {
+            0% { transform: scale(1) rotateY(180deg); }
+            50% { transform: scale(1.1) rotateY(180deg); }
+            100% { transform: scale(1) rotateY(180deg); }
+        }
+
+        @keyframes shuffle {
+            0% { transform: rotate(0) scale(1); }
+            25% { transform: rotate(90deg) scale(0.8); }
+            50% { transform: rotate(180deg) scale(0.6); }
+            75% { transform: rotate(270deg) scale(0.8); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        /* 控制按钮 */
+        .game-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 胜利消息 */
+        .victory-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .victory-content {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: bounceIn 0.5s ease;
+            max-width: 90%;
+        }
+
+        .victory-content h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .victory-stats {
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+
+        .star-rating {
+            font-size: 2rem;
+            margin: 20px 0;
+        }
+
+        /* 警告消息 */
+        .warning-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #8b0000 0%, #dc143c 100%);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            z-index: 2000;
+            display: none;
+            animation: warningPulse 0.5s ease;
+            box-shadow: 0 0 30px rgba(220, 20, 60, 0.8);
+        }
+
+        @keyframes warningPulse {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        /* 动画 */
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 粒子效果 */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0;
+            animation: float 3s ease-out;
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-50px) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0.5);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .control-panel { padding: 10px; }
+            .game-board { gap: 8px; padding: 10px; }
+            .card::before { font-size: 1.2rem; }
+            .card.flipped .card-content,
+            .card.matched .card-content { font-size: 1.5rem; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.5rem; }
+            .difficulty-btn { padding: 6px 12px; font-size: 0.8rem; }
+            .game-container { padding: 5px; }
+            .game-board { gap: 5px; padding: 8px; }
+            .card::before { font-size: 1rem; }
+            .card.flipped .card-content,
+            .card.matched .card-content { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-1">
+    <header>
+        <h1>🎮 记忆翻牌大师 🎮</h1>
+    </header>
+
+    <div class="control-panel">
+        <div class="difficulty-buttons">
+            <button class="difficulty-btn active" data-level="easy">初级 3×4</button>
+            <button class="difficulty-btn" data-level="medium">中级 4×5</button>
+            <button class="difficulty-btn" data-level="hard">地狱 6×6</button>
+        </div>
+
+        <div class="game-stats">
+            <div class="stat-item">
+                <span class="stat-label">步数</span>
+                <span class="stat-value" id="moves">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">得分</span>
+                <span class="stat-value" id="score">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">时间</span>
+                <span class="stat-value" id="timer">00:00</span>
+            </div>
+        </div>
+
+        <div class="bg-selector">
+            <span>背景：</span>
+            <div class="bg-option active" data-bg="bg-gradient-1" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);"></div>
+            <div class="bg-option" data-bg="bg-gradient-2" style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);"></div>
+            <div class="bg-option" data-bg="bg-gradient-3" style="background: linear-gradient(135deg, #232526 0%, #414345 50%, #5d6d7e 100%);"></div>
+            <div class="bg-option" data-bg="bg-gradient-4" style="background: linear-gradient(135deg, #2b5876 0%, #4e4376 50%, #6b3d6b 100%);"></div>
+            <div class="bg-option" data-bg="bg-gradient-5" style="background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%);"></div>
+            <div class="bg-option" data-bg="bg-image" data-image="https://picsum.photos/seed/memory1/1920/1080.jpg" style="background: url('https://picsum.photos/seed/memory1/100/100.jpg'); background-size: cover;"></div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <main class="game-board easy" id="gameBoard"></main>
+    </div>
+
+    <div class="game-controls">
+        <button class="btn" onclick="game.reset()">🔄 重新开始</button>
+        <button class="btn" onclick="game.hint()">💡 提示 (扣10分)</button>
+    </div>
+
+    <div class="victory-modal" id="victoryModal">
+        <div class="victory-content">
+            <h2>🎉 恭喜通关！🎉</h2>
+            <div class="star-rating" id="starRating"></div>
+            <div class="victory-stats">
+                <p>完成步数：<span id="finalMoves"></span></p>
+                <p>最终得分：<span id="finalScore"></span></p>
+                <p>用时：<span id="finalTime"></span></p>
+                <p id="shuffleCount" style="display: none;">打乱次数：<span id="shuffleValue">0</span></p>
+            </div>
+            <button class="btn" onclick="game.nextLevel()">下一关</button>
+            <button class="btn" onclick="game.reset()">重玩本关</button>
+        </div>
+    </div>
+
+    <div class="warning-message" id="warningMessage">
+        ⚠️ 牌已重新打乱！⚠️
+    </div>
+
+    <script>
+        class MemoryGame {
+            constructor() {
+                this.difficulty = 'easy';
+                this.cards = [];
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.moves = 0;
+                this.score = 0;
+                this.startTime = null;
+                this.timerInterval = null;
+                this.canFlip = true;
+                this.level = 1;
+                this.shuffleCount = 0;
+                
+                this.symbols = {
+                    easy: ['🌟', '🎈', '🎨', '🎯', '🎪', '🎭'],
+                    medium: ['🌟', '🎈', '🎨', '🎯', '🎪', '🎭', '🎸', '🎺', '🎻', '🎮'],
+                    hard: ['🌟', '🎈', '🎨', '🎯', '🎪', '🎭', '🎸', '🎺', '🎻', '🎮', '🎲', '🎳', '🎯', '🎪', '🎭', '🎸', '🎺', '🎻']
+                };
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.reset();
+            }
+
+            setupEventListeners() {
+                // 难度选择
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.difficulty-btn').forEach(b => {
+                            b.classList.remove('active', 'hard-mode');
+                        });
+                        e.target.classList.add('active');
+                        
+                        if (e.target.dataset.level === 'hard') {
+                            e.target.classList.add('hard-mode');
+                        }
+                        
+                        this.difficulty = e.target.dataset.level;
+                        this.reset();
+                    });
+                });
+
+                // 背景选择
+                document.querySelectorAll('.bg-option').forEach(option => {
+                    option.addEventListener('click', (e) => {
+                        document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
+                        e.target.classList.add('active');
+                        
+                        const bg = e.target.dataset.bg;
+                        document.body.className = bg;
+                        
+                        if (bg === 'bg-image' && e.target.dataset.image) {
+                            document.body.style.backgroundImage = `url('${e.target.dataset.image}')`;
+                        } else {
+                            document.body.style.backgroundImage = '';
+                        }
+                    });
+                });
+            }
+
+            reset() {
+                this.cards = [];
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.moves = 0;
+                this.score = 0;
+                this.canFlip = true;
+                this.shuffleCount = 0;
+                
+                clearInterval(this.timerInterval);
+                this.startTime = Date.now();
+                this.startTimer();
+                
+                this.updateStats();
+                this.createBoard();
+            }
+
+            createBoard() {
+                const board = document.getElementById('gameBoard');
+                board.innerHTML = '';
+                board.className = `game-board ${this.difficulty}`;
+                
+                const symbolSet = this.symbols[this.difficulty];
+                const pairs = this.difficulty === 'easy' ? 6 : this.difficulty === 'medium' ? 10 : 18;
+                const gameSymbols = symbolSet.slice(0, pairs);
+                const cardData = [...gameSymbols, ...gameSymbols];
+                
+                // 随机打乱
+                for (let i = cardData.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [cardData[i], cardData[j]] = [cardData[j], cardData[i]];
+                }
+                
+                cardData.forEach((symbol, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.symbol = symbol;
+                    card.dataset.index = index;
+                    
+                    const content = document.createElement('div');
+                    content.className = 'card-content';
+                    content.textContent = symbol;
+                    card.appendChild(content);
+                    
+                    card.addEventListener('click', () => this.flipCard(card));
+                    board.appendChild(card);
+                    
+                    // 延迟显示动画
+                    setTimeout(() => {
+                        card.style.animation = 'fadeIn 0.3s ease';
+                    }, index * 30);
+                });
+                
+                this.cards = board.querySelectorAll('.card');
+            }
+
+            flipCard(card) {
+                if (!this.canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) {
+                    return;
+                }
+                
+                card.classList.add('flipped');
+                this.flippedCards.push(card);
+                
+                if (this.flippedCards.length === 2) {
+                    this.canFlip = false;
+                    this.moves++;
+                    this.updateStats();
+                    this.checkMatch();
+                }
+            }
+
+            checkMatch() {
+                const [card1, card2] = this.flippedCards;
+                const match = card1.dataset.symbol === card2.dataset.symbol;
+                
+                setTimeout(() => {
+                    if (match) {
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        this.matchedPairs++;
+                        this.score += 20;
+                        this.createParticles(card1);
+                        this.createParticles(card2);
+                        
+                        if (this.matchedPairs === this.cards.length / 2) {
+                            this.victory();
+                        }
+                        
+                        this.flippedCards = [];
+                        this.canFlip = true;
+                        this.updateStats();
+                    } else {
+                        // 地狱模式特殊处理
+                        if (this.difficulty === 'hard') {
+                            // 先翻回当前的两张牌
+                            card1.classList.remove('flipped');
+                            card2.classList.remove('flipped');
+                            
+                            // 等待翻回动画完成后，再执行打乱
+                            setTimeout(() => {
+                                this.shuffleUnmatchedCards();
+                                this.score = Math.max(0, this.score - 10);
+                                this.flippedCards = [];
+                                this.canFlip = true;
+                                this.updateStats();
+                            }, 600);
+                        } else {
+                            card1.classList.remove('flipped');
+                            card2.classList.remove('flipped');
+                            this.score = Math.max(0, this.score - 5);
+                            this.flippedCards = [];
+                            this.canFlip = true;
+                            this.updateStats();
+                        }
+                    }
+                }, 1000);
+            }
+
+            shuffleUnmatchedCards() {
+                // 显示警告消息
+                this.showWarning();
+                
+                // 获取所有未匹配且未翻开的牌
+                const unmatchedCards = Array.from(this.cards).filter(card => 
+                    !card.classList.contains('matched') && !card.classList.contains('flipped')
+                );
+                
+                // 获取这些牌的符号
+                const symbols = unmatchedCards.map(card => card.dataset.symbol);
+                
+                // 打乱符号顺序
+                for (let i = symbols.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
+                }
+                
+                // 重新分配符号
+                unmatchedCards.forEach((card, index) => {
+                    card.classList.add('shuffling');
+                    setTimeout(() => {
+                        card.dataset.symbol = symbols[index];
+                        card.querySelector('.card-content').textContent = symbols[index];
+                        card.classList.remove('shuffling');
+                    }, 250);
+                });
+                
+                this.shuffleCount++;
+            }
+
+            showWarning() {
+                const warning = document.getElementById('warningMessage');
+                warning.style.display = 'block';
+                
+                setTimeout(() => {
+                    warning.style.display = 'none';
+                }, 1500);
+            }
+
+            hint() {
+                if (this.score < 10) {
+                    this.showMessage('分数不足！');
+                    return;
+                }
+                
+                this.score -= 10;
+                this.updateStats();
+                
+                const unmatched = Array.from(this.cards).filter(card => 
+                    !card.classList.contains('matched') && !card.classList.contains('flipped')
+                );
+                
+                if (unmatched.length >= 2) {
+                    const symbol = unmatched[0].dataset.symbol;
+                    const pair = unmatched.filter(card => card.dataset.symbol === symbol).slice(0, 2);
+                    
+                    pair.forEach(card => {
+                        card.classList.add('flipped');
+                        setTimeout(() => {
+                            if (!card.classList.contains('matched')) {
+                                card.classList.remove('flipped');
+                            }
+                        }, 1500);
+                    });
+                }
+            }
+
+            createParticles(element) {
+                const rect = element.getBoundingClientRect();
+                const colors = ['#f39c12', '#e67e22', '#27ae60', '#2ecc71'];
+                
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = rect.left + rect.width / 2 + 'px';
+                    particle.style.top = rect.top + rect.height / 2 + 'px';
+                    particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    particle.textContent = '✨';
+                    particle.style.fontSize = Math.random() * 20 + 10 + 'px';
+                    
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 3000);
+                }
+            }
+
+            startTimer() {
+                this.timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    document.getElementById('timer').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+
+            updateStats() {
+                document.getElementById('moves').textContent = this.moves;
+                document.getElementById('score').textContent = this.score;
+            }
+
+            victory() {
+                clearInterval(this.timerInterval);
+                
+                const time = document.getElementById('timer').textContent;
+                const stars = this.calculateStars();
+                
+                document.getElementById('finalMoves').textContent = this.moves;
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('finalTime').textContent = time;
+                document.getElementById('starRating').textContent = '⭐'.repeat(stars);
+                
+                // 如果是地狱模式，显示打乱次数
+                if (this.difficulty === 'hard') {
+                    document.getElementById('shuffleCount').style.display = 'block';
+                    document.getElementById('shuffleValue').textContent = this.shuffleCount;
+                } else {
+                    document.getElementById('shuffleCount').style.display = 'none';
+                }
+                
+                document.getElementById('victoryModal').style.display = 'flex';
+            }
+
+            calculateStars() {
+                const optimalMoves = this.cards.length / 2;
+                const ratio = this.moves / optimalMoves;
+                
+                if (ratio <= 1.5) return 3;
+                if (ratio <= 2) return 2;
+                return 1;
+            }
+
+            nextLevel() {
+                this.level++;
+                document.getElementById('victoryModal').style.display = 'none';
+                
+                // 自动升级难度
+                if (this.level % 3 === 0 && this.difficulty === 'easy') {
+                    this.difficulty = 'medium';
+                    document.querySelector('[data-level="medium"]').click();
+                } else if (this.level % 5 === 0 && this.difficulty === 'medium') {
+                    this.difficulty = 'hard';
+                    document.querySelector('[data-level="hard"]').click();
+                } else {
+                    this.reset();
+                }
+            }
+
+            showMessage(text) {
+                const message = document.createElement('div');
+                message.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 20px 40px;
+                    border-radius: 10px;
+                    font-size: 1.2rem;
+                    z-index: 2000;
+                    animation: fadeIn 0.3s ease;
+                `;
+                message.textContent = text;
+                document.body.appendChild(message);
+                
+                setTimeout(() => message.remove(), 2000);
+            }
+        }
+
+        // 初始化游戏
+        const game = new MemoryGame();
+    </script>
+</body>
+</html>

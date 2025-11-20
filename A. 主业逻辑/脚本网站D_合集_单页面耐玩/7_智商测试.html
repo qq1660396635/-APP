@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智商测试 - 挑战你的思维极限</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: background 0.5s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .color-switcher {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-switcher:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .color-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .test-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.5s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .welcome-screen p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .question-container {
+            display: none;
+        }
+
+        .question-type {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1.1em;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-letter {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+
+        .option:hover .option-letter {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.selected .option-letter {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .progress {
+            background: #e9ecef;
+            height: 10px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .result-container {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .completion-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .email-message {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .email-input {
+            background: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* 预定义的渐变背景 */
+        .bg-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .bg-gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .bg-gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .bg-gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .bg-gradient-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+        .bg-gradient-7 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .bg-gradient-8 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+
+        @media (max-width: 768px) {
+            .test-container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .question {
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="color-switcher" onclick="changeBackground()">
+            <span class="color-icon"></span>
+            切换背景
+        </button>
+    </header>
+    
+    <div class="container">
+        <div class="test-container">
+            <h1>智商测试</h1>
+            <p class="subtitle">挑战人类思维的极限</p>
+            
+            <!-- 欢迎界面 -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <p>欢迎参加全球最高难度的智商测试！</p>
+                <div class="warning">
+                    ⚠️ 警告：本测试包含哲学悖论、世界难题和深度思维挑战，可能引发认知危机
+                </div>
+                <p>本测试包含30道精心设计的题目，涵盖：</p>
+                <p>🧠 哲学悖论 | 🌍 世界难题 | 🔬 逻辑推理 | 📐 数学思维</p>
+                <p>预计完成时间：15-20分钟</p>
+                <p>请准备好迎接思维挑战...</p>
+                <button class="start-btn" onclick="startTest()">开始挑战</button>
+            </div>
+            
+            <!-- 题目界面 -->
+            <div class="question-container" id="questionContainer">
+                <div class="progress-text" id="progressText">第 1 题 / 共 30 题</div>
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <span class="question-type" id="questionType"></span>
+                <div class="question" id="question"></div>
+                <div class="options" id="options"></div>
+                <button class="submit-btn" onclick="nextQuestion()">下一题</button>
+            </div>
+            
+            <!-- 结果界面 -->
+            <div class="result-container" id="resultContainer">
+                <div class="completion-icon">🎯</div>
+                <h2 class="result-title">测试完成！</h2>
+                <div class="email-message">
+                    <p>恭喜你完成了人类历史上最具挑战性的智商测试！</p>
+                    <p>你的答案已经进入深度分析系统...</p>
+                    <p>请输入你的邮箱，详细的智商分析报告将在24-48小时内发送到你的邮箱。</p>
+                </div>
+                <input type="email" class="email-input" placeholder="请输入你的邮箱地址" id="emailInput">
+                <button class="submit-btn" onclick="submitEmail()">获取分析报告</button>
+                <div id="emailResult"></div>
+                <button class="restart-btn" onclick="restartTest()">重新挑战</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gradients = [
+            'bg-gradient-1', 'bg-gradient-2', 'bg-gradient-3', 'bg-gradient-4',
+            'bg-gradient-5', 'bg-gradient-6', 'bg-gradient-7', 'bg-gradient-8'
+        ];
+        
+        let currentGradientIndex = 0;
+
+        function changeBackground() {
+            document.body.className = '';
+            
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * gradients.length);
+            } while (newIndex === currentGradientIndex);
+            
+            currentGradientIndex = newIndex;
+            document.body.classList.add(gradients[currentGradientIndex]);
+            
+            const button = document.querySelector('.color-switcher');
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 200);
+        }
+
+        // 30道智商测试题目
+        const allQuestions = [
+            {
+                type: "哲学悖论",
+                question: "上帝悖论：如果上帝是全能的，祂能创造一块自己举不起来的石头吗？如果祂能，那么祂就不是全能的（因为举不起这块石头）；如果祂不能，那么祂也不是全能的（因为创造不出这块石头）。这个悖论的本质是什么？",
+                options: [
+                    "全能这个概念本身存在逻辑矛盾",
+                    "上帝根本不存在",
+                    "这是一个语言游戏，没有实际意义",
+                    "人类的逻辑无法理解神性"
+                ]
+            },
+            {
+                type: "伦理困境",
+                question: "电车难题：一辆失控的电车即将撞死轨道上的5个人，你可以拉动一个拉杆，让电车转向另一条轨道，但那条轨道上有1个人。从纯粹的功利主义角度，你应该怎么做？",
+                options: [
+                    "不拉动拉杆，因为主动杀人比被动死亡更道德",
+                    "拉动拉杆，5条生命比1条生命更有价值",
+                    "寻找第三种选择，比如警告所有人",
+                    "这个问题没有正确答案"
+                ]
+            },
+            {
+                type: "逻辑推理",
+                question: "忒修斯之船：如果一艘船的所有木板都被逐渐替换，直到所有木板都不是原来的木板，这艘船还是原来的船吗？如果用换下来的木板重新组装一艘船，哪一艘才是真正的忒修斯之船？",
+                options: [
+                    "第一艘船是原来的，因为它保持了连续性",
+                    "第二艘船是原来的，因为它由原来的材料构成",
+                    "两艘船都不是原来的",
+                    "这取决于我们如何定义'同一性'"
+                ]
+            },
+            {
+                type: "数学悖论",
+                question: "罗素悖论：一个集合包含所有不包含自身的集合。这个集合是否包含自身？如果它包含自身，根据定义它不应该包含自身；如果它不包含自身，根据定义它应该包含自身。这个悖论揭示了什么？",
+                options: [
+                    "数学基础存在根本性问题",
+                    "集合论需要重新定义",
+                    "逻辑的局限性",
+                    "以上都对"
+                ]
+            },
+            {
+                type: "哲学思考",
+                question: "缸中之脑：你如何确定自己不是一个被邪恶科学家放在营养缸中的大脑，所有的感知都是通过电极输入的？你有什么证据证明外部世界的真实性？",
+                options: [
+                    "奥卡姆剃刀原理：简单的解释更可能",
+                    "无法确定，这是一个哲学问题",
+                    "通过他人的存在可以证明",
+                    "科学的可重复性证明了现实"
+                ]
+            },
+            {
+                type: "时间悖论",
+                question: "祖父悖论：如果你回到过去杀死了你的祖父，你就不会出生，也就不能回到过去杀死祖父。这个悖论的解决方案是什么？",
+                options: [
+                    "时间旅行是不可能的",
+                    "平行宇宙理论：你创造了新的时间线",
+                    "自我一致性原则：你无法改变过去",
+                    "时间循环：过去已经包含了你的行为"
+                ]
+            },
+            {
+                type: "认识论",
+                question: "美诺悖论：如果你知道你在寻找什么，寻找就是多余的；如果你不知道你在寻找什么，你如何能找到它？这个悖论对知识获取意味着什么？",
+                options: [
+                    "知识是回忆（柏拉图主义）",
+                    "知识通过逐步逼近获得",
+                    "这个悖论可以通过重新定义'知道'来解决",
+                    "知识获取本质上是不可能的"
+                ]
+            },
+            {
+                type: "数学思维",
+                question: "希尔伯特旅馆悖论：一个有无限房间的旅馆住满了客人，这时又来了一位客人，旅馆老板如何安排新客人入住而不让任何人离开？",
+                options: [
+                    "让每个客人搬到下一个房间",
+                    "这不可能，因为已经满了",
+                    "在走廊里加个床位",
+                    "这不是一个真实的问题"
+                ]
+            },
+            {
+                type: "哲学悖论",
+                question: "说谎者悖论：这句话是假的。如果这句话是真的，那么它就是假的；如果它是假的，那么它就是真的。这个悖论对逻辑系统意味着什么？",
+                options: [
+                    "语言存在根本性缺陷",
+                    "需要分层逻辑来避免自指",
+                    "某些真理无法用语言表达",
+                    "逻辑需要重新定义"
+                ]
+            },
+            {
+                type: "伦理学",
+                question: "器官移植医生困境：一个健康的病人有5个器官可以拯救5个需要器官移植的病人，医生是否应该杀死这个健康病人来拯救5个人？为什么这与电车难题不同？",
+                options: [
+                    "不应该，因为不能把人当作手段",
+                    "应该，因为5>1",
+                    "这与电车难题没有本质区别",
+                    "取决于是否得到病人同意"
+                ]
+            },
+            {
+                type: "数学悖论",
+                question: "芝诺悖论：阿喀琉斯追乌龟，乌龟先出发100米，阿喀琉斯速度是乌龟的10倍。当阿喀琉斯到达乌龟出发点时，乌龟已经前进了10米；当阿喀琉斯到达这个位置时，乌龟又前进了1米...阿喀琉斯能否追上乌龟？",
+                options: [
+                    "不能，因为无限分割",
+                    "能，因为无限级数收敛",
+                    "这个问题基于错误的假设",
+                    "取决于空间是否连续"
+                ]
+            },
+            {
+                type: "哲学思考",
+                question: "自由意志与决定论：如果宇宙的所有事件都是由先前事件因果决定的，人类是否还有自由意志？如果我们的选择是预先决定的，道德责任还有意义吗？",
+                options: [
+                    "自由意志是一种幻觉",
+                    "自由意志与决定论可以兼容",
+                    "量子力学为自由意志提供了可能",
+                    "这个问题超越了人类理解能力"
+                ]
+            },
+            {
+                type: "认识论",
+                question: "归纳问题：为什么我们相信太阳明天会升起？过去的观察并不能保证未来的事件，但所有的科学知识都基于归纳推理。归纳推理的合理性基础是什么？",
+                options: [
+                    "基于习惯和心理学",
+                    "基于自然的均匀性假设",
+                    "基于概率论",
+                    "归纳推理本质上是不合理的"
+                ]
+            },
+            {
+                type: "伦理学",
+                question: "绝对命令测试：如果你希望所有人都按照某个准则行动，而这个准则如果普遍化会导致自相矛盾，那么这个准则就是错误的。这个原则的局限性是什么？",
+                options: [
+                    "无法处理道德冲突",
+                    "过于抽象，缺乏具体指导",
+                    "忽视了情感和关系",
+                    "以上都是"
+                ]
+            },
+            {
+                type: "哲学悖论",
+                question: "意外绞刑悖论：法官告诉囚犯将在下周的某天被绞刑，但执行日期会是意外的。囚犯通过逻辑推理排除了每一天，但最终还是在周三被绞刑了，这确实是意外的。问题出在哪里？",
+                options: [
+                    "囚犯的推理有误",
+                    "'意外'的定义有问题",
+                    "自我指涉导致的悖论",
+                    "时间概念的问题"
+                ]
+            },
+            {
+                type: "数学思维",
+                question: "巴拿赫-塔斯基悖论：可以将一个实心球分割成有限块，然后重新组合成两个与原来完全相同的球。这个'不可能'的结果说明了什么？",
+                options: [
+                    "数学与现实不同",
+                    "无限集的反直觉性质",
+                    "选择公理的问题",
+                    "几何学的局限性"
+                ]
+            },
+            {
+                type: "哲学思考",
+                question: "他人心灵问题：你如何确定其他人也有意识和内心体验，而不是哲学僵尸（外表和行为与人类相同但没有意识）？",
+                options: [
+                    "通过类比推理：因为我和他人相似，所以他人也有意识",
+                    "无法确定，这是一个信仰问题",
+                    "通过行为测试可以确定",
+                    "意识是社会建构的"
+                ]
+            },
+            {
+                type: "伦理学",
+                question: "享乐机思想实验：如果有一台机器可以给你任何想要的快乐体验，你会选择永远连接这台机器吗？为什么选择或拒绝？",
+                options: [
+                    "会连接，因为快乐是最终目标",
+                    "不会连接，因为真实比虚幻更重要",
+                    "会暂时连接，但不会永远",
+                    "取决于快乐的质量"
+                ]
+            },
+            {
+                type: "时间哲学",
+                question: "时间的本质：时间是客观存在的实体，还是人类感知的主观构造？过去、现在、未来哪个是'真实'的？",
+                options: [
+                    "时间是客观的，过去现在未来都真实存在（永恒主义）",
+                    "只有现在是真实的（现在主义）",
+                    "时间是主观的感知",
+                    "时间不存在，只是变化的关系"
+                ]
+            },
+            {
+                type: "认识论",
+                question: "知识的定义：传统的知识定义是'被证实的真实信念'，但盖梯尔问题显示这个定义不充分。什么是知识的正确定义？",
+                options: [
+                    "知识需要加上'没有错误运气'的条件",
+                    "知识无法被精确定义",
+                    "知识是可靠的信念形成过程的产物",
+                    "知识只是社会共识"
+                ]
+            },
+            {
+                type: "哲学悖论",
+                question: "全能悖论变体：上帝能否创造一个圆的三角形？如果不能，祂是否全能？如果能，逻辑定律是否还有意义？",
+                options: [
+                    "全能不包括逻辑上不可能的事",
+                    "逻辑定律也是上帝创造的",
+                    "这个问题混淆了语言和现实",
+                    "全能这个概念需要重新定义"
+                ]
+            },
+            {
+                type: "伦理学",
+                question: "道德相对主义：如果道德标准因文化而异，是否存在普世的道德真理？如果不存在，我们如何谴责其他文化的道德实践？",
+                options: [
+                    "存在普世道德真理",
+                    "道德完全是相对的",
+                    "某些道德是普世的，其他是相对的",
+                    "道德是进化适应的产物"
+                ]
+            },
+            {
+                type: "数学思维",
+                question: "连续统假设：是否存在一个集合，其大小严格介于自然数集合和实数集合之间？哥德尔和科恩证明了这个问题在标准集合论中既不能被证明也不能被证伪。这对数学意味着什么？",
+                options: [
+                    "数学存在多个同样有效的版本",
+                    "我们需要新的公理",
+                    "某些数学问题永远无法回答",
+                    "数学基础不完整"
+                ]
+            },
+            {
+                type: "哲学思考",
+                question: "个人同一性：什么使你在时间中保持为同一个人？是记忆、身体、还是连续的意识？如果记忆可以移植，你还是你吗？",
+                options: [
+                    "心理连续性决定同一性",
+                    "身体连续性决定同一性",
+                    "没有真正的同一性，每秒都是新的人",
+                    "同一性是实用主义的构造"
+                ]
+            },
+            {
+                type: "伦理学",
+                question: "责任与因果关系：如果一个人的行为完全由基因、环境和神经化学决定，我们还能说他对自己的行为负责吗？道德责任是否需要自由意志？",
+                options: [
+                    "不需要，责任是社会需要",
+                    "需要，否则道德体系崩溃",
+                    "需要重新定义责任",
+                    "这个问题无法解决"
+                ]
+            },
+            {
+                type: "认识论",
+                question: "怀疑论的极限：我们可以怀疑一切吗？是否存在不可怀疑的基础？笛卡尔的'我思故我在'是否真的不可怀疑？",
+                options: [
+                    "存在不可怀疑的基础",
+                    "一切都可以被怀疑",
+                    "怀疑本身不能被怀疑",
+                    "怀疑论是自我反驳的"
+                ]
+            },
+            {
+                type: "哲学悖论",
+                question: "虚无主义：如果生命没有内在意义，我们是否应该创造自己的意义？创造的意义与'真实'的意义有什么区别？",
+                options: [
+                    "创造的意义是唯一可能的意义",
+                    "没有内在意义意味着没有意义",
+                    "意义是发现的，不是创造的",
+                    "这个问题本身就预设了意义的必要性"
+                ]
+            },
+            {
+                type: "数学思维",
+                question: "哥德尔不完备定理：任何包含算术的一致的形式系统都存在既不能被证明也不能被证伪的命题。这对人类理性意味着什么？",
+                options: [
+                    "理性存在根本局限",
+                    "人类直觉超越形式系统",
+                    "需要更强的逻辑系统",
+                    "数学是不完整的"
+                ]
+            },
+            {
+                type: "哲学思考",
+                question: "意识难题：为什么物理过程会产生主观体验？即使我们完全理解大脑的工作原理，我们仍然无法解释'红色是什么感觉'。这个'解释鸿沟'能否被填补？",
+                options: [
+                    "意识是物理过程的涌现属性",
+                    "意识是基本属性，不可还原",
+                    "这个问题是语言混淆的结果",
+                    "人类永远无法理解意识"
+                ]
+            },
+            {
+                type: "终极问题",
+                question: "为什么存在而不是不存在？这是最根本的哲学问题。所有其他的'为什么'都可以追溯到这个问题。可能的答案有哪些？",
+                options: [
+                    "这个问题没有意义",
+                    "存在是逻辑必然的",
+                    "存在是偶然的，没有原因",
+                    "这个问题超越了人类理解"
+                ]
+            }
+        ];
+
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+
+        function startTest() {
+            // 随机选择30道题
+            currentQuestions = [...allQuestions].sort(() => Math.random() - 0.5).slice(0, 30);
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('questionContainer').style.display = 'block';
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = currentQuestions[currentQuestionIndex];
+            const progress = ((currentQuestionIndex + 1) / 30) * 100;
+            
+            document.getElementById('progressText').textContent = `第 ${currentQuestionIndex + 1} 题 / 共 30 题`;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionType').textContent = question.type;
+            
+            // 添加题目序号
+            document.getElementById('question').innerHTML = `
+                <span class="question-number">${currentQuestionIndex + 1}</span>
+                ${question.question}
+            `;
+            
+            const optionLetters = ['A', 'B', 'C', 'D'];
+            const optionsHtml = question.options.map((option, index) => `
+                <label class="option" onclick="selectOption(${index})">
+                    <input type="radio" name="answer" value="${index}">
+                    <span class="option-letter">${optionLetters[index]}</span>
+                    <span>${option}</span>
+                </label>
+            `).join('');
+            
+            document.getElementById('options').innerHTML = optionsHtml;
+            
+            // 如果是最后一题，改变按钮文字
+            if (currentQuestionIndex === 29) {
+                document.querySelector('.submit-btn').textContent = '完成测试';
+            } else {
+                document.querySelector('.submit-btn').textContent = '下一题';
+            }
+        }
+
+        function selectOption(index) {
+            // 移除所有选中状态
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // 添加选中状态
+            document.querySelectorAll('.option')[index].classList.add('selected');
+            document.querySelectorAll('.option')[index].querySelector('input').checked = true;
+        }
+
+        function nextQuestion() {
+            const selectedOption = document.querySelector('input[name="answer"]:checked');
+            
+            if (!selectedOption) {
+                // 创建提示动画
+                const options = document.querySelectorAll('.option');
+                options.forEach(opt => opt.style.animation = 'shake 0.5s');
+                setTimeout(() => {
+                    options.forEach(opt => opt.style.animation = '');
+                }, 500);
+                return;
+            }
+            
+            userAnswers.push(parseInt(selectedOption.value));
+            
+            if (currentQuestionIndex < 29) {
+                currentQuestionIndex++;
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('questionContainer').style.display = 'none';
+            document.getElementById('resultContainer').style.display = 'block';
+        }
+
+        function submitEmail() {
+            const email = document.getElementById('emailInput').value;
+            if (!email) {
+                document.getElementById('emailResult').innerHTML = '<p style="color: red; margin-top: 10px;">请输入邮箱地址</p>';
+                return;
+            }
+            
+            // 模拟提交
+            document.getElementById('emailResult').innerHTML = '<p style="color: #43e97b; margin-top: 10px;">✅ 提交成功！请查收邮件...</p>';
+            document.getElementById('emailInput').disabled = true;
+            document.querySelector('.submit-btn').disabled = true;
+        }
+
+        function restartTest() {
+            document.getElementById('resultContainer').style.display = 'none';
+            document.getElementById('welcomeScreen').style.display = 'block';
+            document.getElementById('emailInput').value = '';
+            document.getElementById('emailInput').disabled = false;
+            document.getElementById('emailResult').innerHTML = '';
+            document.querySelector('.submit-btn').disabled = false;
+        }
+
+        // 初始化背景
+        document.body.classList.add('bg-gradient-1');
+    </script>
+</body>
+</html>

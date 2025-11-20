@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>提示词收藏</title>
+    <script src="3_prompts.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        h1 {
+            color: #333;
+            font-size: 1.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        /* 强制两列布局 */
+        .cards-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .prompt-card {
+            background: linear-gradient(145deg, #f3f4f6, #ffffff);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            min-height: 150px;
+        }
+        .prompt-card:hover {
+            transform: translateY(-3px);
+        }
+        .prompt-card:nth-child(3n+1) {
+            background: linear-gradient(145deg, #e8f5e9, #ffffff);
+        }
+        .prompt-card:nth-child(3n+2) {
+            background: linear-gradient(145deg, #fff3e0, #ffffff);
+        }
+        .prompt-card:nth-child(3n+3) {
+            background: linear-gradient(145deg, #fce4ec, #ffffff);
+        }
+        .prompt-card h3 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            margin: 0;
+            font-size: 1.1em;
+        }
+        .prompt-card:nth-child(3n+1) h3 {
+            background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+        }
+        .prompt-card:nth-child(3n+2) h3 {
+            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+        }
+        .prompt-card:nth-child(3n+3) h3 {
+            background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
+        }
+        .prompt-summary {
+            padding: 15px;
+            color: #333;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 0.85em;
+        }
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 90%;
+            width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+        .modal-title {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: bold;
+        }
+        .close-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .close-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+        .modal-body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            font-size: 0.9em;
+            border-left: 4px solid #667eea;
+        }
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .copy-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+        }
+        /* 移动端优化：保持两列但调整尺寸 */
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .container { padding: 10px; border-radius: 8px; }
+            .cards-container { 
+                grid-template-columns: 1fr 1fr; 
+                gap: 8px; 
+            }
+            .header { flex-direction: column; align-items: stretch; }
+            h1 { font-size: 1.3em; text-align: center; }
+            .prompt-card { min-height: 120px; }
+            .prompt-card h3 { font-size: 0.9em; padding: 8px; }
+            .prompt-summary { padding: 8px; font-size: 0.8em; }
+            .modal-content { width: 95%; padding: 20px; }
+            .modal-title { font-size: 1.2em; }
+            .modal-body { font-size: 0.8em; padding: 15px; }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 1.2em; }
+            .prompt-card h3 { font-size: 0.85em; padding: 6px; }
+            .prompt-summary { padding: 6px; font-size: 0.75em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="mainTitle">提示词收藏</h1>
+        </div>
+        <div class="cards-container" id="content">
+            <div class="loading">正在加载提示词内容...</div>
+        </div>
+        <div class="footer">
+            <p>点击卡片查看详细内容</p>
+        </div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal" id="promptModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">提示词详情</div>
+                <button class="close-btn" onclick="closeModal()">关闭</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 提示词内容 -->
+            </div>
+            <div class="modal-footer">
+                <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">
+                    复制提示词
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPromptContent = '';
+
+        function renderPrompts() {
+            const contentDiv = document.getElementById('content');
+            
+            if (!prompts || prompts.length === 0) {
+                contentDiv.innerHTML = '<div class="error">没有找到提示词</div>';
+                return;
+            }
+
+            let cardsHtml = '';
+            prompts.forEach((prompt, index) => {
+                cardsHtml += `
+                    <div class="prompt-card" onclick="showPrompt(${index})">
+                        <h3>${prompt.title}</h3>
+                        <div class="prompt-summary">${prompt.summary}</div>
+                    </div>
+                `;
+            });
+            
+            contentDiv.innerHTML = cardsHtml;
+        }
+
+        function showPrompt(index) {
+            const prompt = prompts[index];
+            if (!prompt) return;
+
+            currentPromptContent = prompt.content;
+            
+            document.getElementById('modalTitle').textContent = prompt.title;
+            document.getElementById('modalBody').textContent = prompt.content;
+            document.getElementById('promptModal').style.display = 'flex';
+            
+            // 重置复制按钮状态
+            const copyBtn = document.getElementById('copyBtn');
+            copyBtn.classList.remove('copied');
+            copyBtn.textContent = '复制提示词';
+        }
+
+        function closeModal() {
+            document.getElementById('promptModal').style.display = 'none';
+        }
+
+        function copyPrompt() {
+            if (!currentPromptContent) return;
+
+            navigator.clipboard.writeText(currentPromptContent).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '已复制';
+                
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.textContent = '复制提示词';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                // 备用复制方法
+                const textArea = document.createElement('textarea');
+                textArea.value = currentPromptContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '已复制';
+                
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.textContent = '复制提示词';
+                }, 2000);
+            });
+        }
+
+        // 点击弹窗背景关闭
+        document.getElementById('promptModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 页面加载完成后渲染
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPrompts();
+        });
+    </script>
+</body>
+</html>
