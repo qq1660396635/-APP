@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>漫画小说屋</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            /* 背景颜色将通过JS随机设置 */
+        }
+
+        /* 漫画网点背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px);
+            background-size: 15px 15px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 漫画风格装饰 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(45deg, transparent 48%, rgba(0,0,0,0.05) 50%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(0,0,0,0.05) 50%, transparent 52%);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 猫咪加载提示 */
+        #cat-loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 4px solid #000;
+            border-radius: 20px;
+            padding: 20px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        #cat-loading.hidden {
+            display: none;
+        }
+
+        /* 卡片网格布局 - 一行三个 */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 漫风卡片 */
+        .card {
+            background: white;
+            border: 3px solid #000;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.2);
+            transform: rotate(-1deg);
+            overflow: hidden;
+        }
+
+        .card:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        .card:hover {
+            transform: rotate(0deg) scale(1.05) translateY(-5px);
+            z-index: 10;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.3);
+        }
+
+        /* 卡片图标 */
+        .card-icon {
+            font-size: 3rem;
+            text-align: center;
+            display: block;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* 卡片标题 */
+        .card-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        /* 对话框 */
+        .speech-bubble {
+            position: absolute;
+            background: white;
+            border: 2px solid #000;
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 15px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #000;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 17px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid white;
+            z-index: 1;
+        }
+
+        /* 装饰星星 */
+        .star {
+            position: absolute;
+            font-size: 1.2rem;
+            color: #ffeb3b;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        /* iframe全屏容器 */
+        #iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            display: none;
+            border: 4px solid #000;
+        }
+
+        #iframe-container.active {
+            display: block;
+        }
+
+        #site-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* 返回按钮 */
+        #back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: 3px solid #000;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            display: none;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        #back-button:hover {
+            transform: scale(1.1);
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
+        }
+
+        #back-button.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 控制按钮 */
+        .control-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border: 3px solid #000;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
+        }
+
+        /* 模态框 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border: 4px solid #000;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.3);
+            transform: rotate(-1deg);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #000;
+            border-radius: 5px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #000;
+            border-radius: 5px;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn.cancel {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .modal-btn.confirm {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+        }
+
+        /* 动画 */
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-10px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px 10px;
+                min-height: 150px;
+            }
+            
+            .card-icon {
+                font-size: 2rem;
+            }
+            
+            .card-title {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cards-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 猫咪加载提示 -->
+    <div id="cat-loading">🐱 加载漫画背景中...</div>
+    
+    <!-- 卡片网格布局 -->
+    <div class="cards-container" id="cards-container">
+        <!-- 卡片将通过JS动态生成 -->
+    </div>
+    
+    <!-- iframe全屏容器 -->
+ <div id="iframe-container">
+    <iframe 
+        id="site-iframe" 
+        src=""
+        allowfullscreen 
+        allow="fullscreen *; picture-in-picture *"
+    ></iframe>
+</div>
+
+    <!-- 返回按钮 -->
+    <button id="back-button">←</button>
+    
+    <!-- 控制按钮 -->
+    <div class="control-buttons">
+        <button class="control-btn" id="add-btn" title="添加网站">+</button>
+        <button class="control-btn" id="rotate-btn" title="旋转卡片">↻</button>
+        <button class="control-btn" id="cat-btn" title="换背景">🎨</button>
+        <button class="control-btn" id="clear-btn" title="清除缓存">🗑️</button>
+    </div>
+    
+    <!-- 添加网站的模态框 -->
+    <div class="modal" id="add-modal">
+        <div class="modal-content">
+            <div class="modal-title">添加新网站</div>
+            <div class="form-group">
+                <label for="site-name">网站名称</label>
+                <input type="text" id="site-name" placeholder="输入网站名称">
+            </div>
+            <div class="form-group">
+                <label for="site-url">网站地址</label>
+                <input type="text" id="site-url" placeholder="输入网站URL (包含http://或https://)">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancel-add">取消</button>
+                <button class="modal-btn confirm" id="confirm-add">确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入配置 -->
+    <script src="5_破解配置config.js"></script>
+    
+    <script>
+        // 背景主题数组
+        const backgrounds = [
+            'linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%)',
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+            'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+            'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)'
+        ];
+        
+        let currentBgIndex = -1;
+
+        // 设置随机背景
+        function setRandomBackground() {
+            // 随机选择一个背景
+            const randomIndex = Math.floor(Math.random() * backgrounds.length);
+            currentBgIndex = randomIndex;
+            document.body.style.background = backgrounds[randomIndex];
+        }
+
+        // 生成卡片
+        function generateCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            
+            sites.forEach((site, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                // 对话框位置 - 循环使用6个位置
+                const bubblePositions = [
+                    'top: 10px; right: 10px;',
+                    'bottom: 10px; left: 10px;',
+                    'top: 10px; left: 50%; transform: translateX(-50%);',
+                    'bottom: 10px; right: 10px;',
+                    'top: 10px; left: 10px;',
+                    'bottom: 10px; left: 50%; transform: translateX(-50%);'
+                ];
+                
+                // 星星位置 - 循环使用6个位置
+                const starPositions = [
+                    'top: 5px; left: 5px;',
+                    'bottom: 5px; right: 5px;',
+                    'top: 5px; right: 5px;',
+                    'bottom: 5px; left: 5px;',
+                    'top: 5px; left: 50%; transform: translateX(-50%);',
+                    'bottom: 5px; right: 50%; transform: translateX(50%);'
+                ];
+                
+                card.innerHTML = `
+                    <span class="card-icon">${site.icon}</span>
+                    <div class="card-title">${site.name}</div>
+                    <div class="speech-bubble" style="${bubblePositions[index % 6]}">
+                        点击进入！
+                    </div>
+                    <div class="star" style="${starPositions[index % 6]}">⭐</div>
+                `;
+                
+                card.onclick = () => openSite(site);
+                container.appendChild(card);
+            });
+        }
+
+        // 打开网站
+        function openSite(site) {
+            const iframeContainer = document.getElementById('iframe-container');
+            const siteIframe = document.getElementById('site-iframe');
+            const backButton = document.getElementById('back-button');
+            
+            siteIframe.src = site.url;
+            iframeContainer.classList.add('active');
+            backButton.classList.add('show');
+        }
+
+        // 关闭iframe
+        function closeIframe() {
+            const iframeContainer = document.getElementById('iframe-container');
+            const siteIframe = document.getElementById('site-iframe');
+            const backButton = document.getElementById('back-button');
+            
+            iframeContainer.classList.remove('active');
+            backButton.classList.remove('show');
+            setTimeout(() => {
+                siteIframe.src = '';
+            }, 300);
+        }
+
+        // 切换背景
+        function changeBackground() {
+            currentBgIndex = (currentBgIndex + 1) % backgrounds.length;
+            document.body.style.background = backgrounds[currentBgIndex];
+        }
+
+        // 旋转卡片
+        function rotateCards() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                const randomRotation = Math.random() * 6 - 3; // -3 到 3 度
+                card.style.transform = `rotate(${randomRotation}deg)`;
+            });
+        }
+
+        // 显示添加模态框
+        function showAddModal() {
+            document.getElementById('add-modal').classList.add('show');
+        }
+
+        // 隐藏添加模态框
+        function hideAddModal() {
+            document.getElementById('add-modal').classList.remove('show');
+            document.getElementById('site-name').value = '';
+            document.getElementById('site-url').value = '';
+        }
+
+        // 添加新网站
+        function addNewSite() {
+            const name = document.getElementById('site-name').value.trim();
+            const url = document.getElementById('site-url').value.trim();
+            
+            if (!name || !url) {
+                alert('请填写完整的网站信息！');
+                return;
+            }
+            
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('请输入有效的URL（包含http://或https://）');
+                return;
+            }
+            
+            const icons = ['📚', '📖', '📝', '🌟', '🎯', '🎪', '🎨', '🎭', '🎬', '👑', '🎮', '🕹️'];
+            const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+            
+            sites.push({
+                name: name,
+                url: url,
+                icon: randomIcon
+            });
+            
+            generateCards();
+            hideAddModal();
+        }
+
+        // 清除缓存
+        function clearCache() {
+            if (confirm('确定要清除所有添加的网站吗？')) {
+                // 重置为原始的六个网站
+                sites.length = 0;
+                sites.push(
+                    {name: '笔趣阁', url: 'https://m.bqg128.cc/', icon: '📚'},
+                    {name: '读之阁', url: 'http://sgm.duzhige.net/', icon: '📖'},
+                    {name: '娜娜', url: 'https://nana00.com/xs124595/', icon: '📝'},
+                    {name: '风车动漫', url: 'https://www.dm304.com/', icon: '🎬'},
+                    {name: '王者TV', url: 'https://wzzy.cc/', icon: '👑'},
+                    {name: '漫画', url: 'https://m.kuaikanmanhua.com/mobile/2583/list/?module_id=0&topic_id=2583&module_title&module_type', icon: '🎨'}
+                );
+                generateCards();
+            }
+        }
+
+        // 事件绑定
+        document.getElementById('back-button').addEventListener('click', closeIframe);
+        document.getElementById('add-btn').addEventListener('click', showAddModal);
+        document.getElementById('rotate-btn').addEventListener('click', rotateCards);
+        document.getElementById('cat-btn').addEventListener('click', changeBackground);
+        document.getElementById('clear-btn').addEventListener('click', clearCache);
+        document.getElementById('cancel-add').addEventListener('click', hideAddModal);
+        document.getElementById('confirm-add').addEventListener('click', addNewSite);
+
+        // ESC键关闭iframe和模态框
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (document.getElementById('iframe-container').classList.contains('active')) {
+                    closeIframe();
+                } else if (document.getElementById('add-modal').classList.contains('show')) {
+                    hideAddModal();
+                }
+            }
+        });
+
+        // 页面加载完成
+        window.addEventListener('load', () => {
+            // 设置随机背景
+            setRandomBackground();
+            
+            setTimeout(() => {
+                document.getElementById('cat-loading').classList.add('hidden');
+                generateCards();
+            }, 1000);
+        });
+
+        // 响应式调整
+        window.addEventListener('resize', () => {
+            // 可以在这里添加响应式逻辑
+        });
+    </script>
+    <!-- 在 </body> 标签前插入 -->
+<div class="footer-notice">
+  此为第三方网站，请不要相信广告，内容与作者无关
+</div>
+
+</body>
+</html>

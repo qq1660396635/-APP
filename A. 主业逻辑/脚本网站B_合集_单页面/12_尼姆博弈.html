@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尼姆游戏 vs AI</title>
+    <style>
+        /* 一、全局样式与CSS变量 */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --card-bg: rgba(255, 255, 255, 0.15);
+            --text-color: #ffffff;
+            --ball-color: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a);
+            --ball-selected: radial-gradient(circle at 30% 30%, #ffd93d, #f39c12);
+            --button-bg: #4ecdc4;
+            --button-hover: #45b7b8;
+            --button-disabled: #95a5a6;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            color: var(--text-color);
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 二、页面布局 */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-info {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 1s ease;
+        }
+
+        .current-player {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .player-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--ball-selected);
+            animation: pulse 2s infinite;
+        }
+
+        .rules {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        /* 三、游戏板样式 */
+        .game-board {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            gap: 15px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .row-label {
+            position: absolute;
+            left: -40px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .ball {
+            width: 45px;
+            height: 45px;
+            background: var(--ball-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ball::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 30%;
+            height: 30%;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        .ball:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .ball.selected {
+            background: var(--ball-selected);
+            transform: scale(1.15);
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        .ball.removed {
+            opacity: 0;
+            transform: scale(0) rotate(360deg);
+            pointer-events: none;
+        }
+
+        /* 四、控制按钮 */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+            animation: fadeIn 1.2s ease;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            background: var(--button-bg);
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            background: var(--button-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            background: var(--button-disabled);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 五、游戏结束弹窗 */
+        .winner-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .winner-content {
+            background: var(--secondary-gradient);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: zoomIn 0.5s ease;
+            max-width: 90%;
+        }
+
+        .winner-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .winner-content p {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+
+        .winner-content button {
+            background: white;
+            color: #764ba2;
+            font-size: 1.2rem;
+        }
+
+        /* 六、动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            from { transform: scale(1.15) translateY(0); }
+            to { transform: scale(1.15) translateY(-5px); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 217, 61, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 217, 61, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 217, 61, 0); }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* 七、响应式设计 */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .container { padding: 15px; }
+            .ball {
+                width: 35px;
+                height: 35px;
+            }
+            .row { gap: 10px; }
+            .row-label {
+                position: static;
+                margin-bottom: 5px;
+                width: 100%;
+                text-align: center;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            button {
+                width: 80%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            .game-board { padding: 20px; }
+            .ball {
+                width: 30px;
+                height: 30px;
+            }
+            .row { gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>尼姆游戏 vs AI</h1>
+        </header>
+        
+        <main>
+            <section class="game-info">
+                <div class="current-player">
+                    <span>当前玩家：</span>
+                    <span id="currentPlayerText">你</span>
+                    <div class="player-indicator"></div>
+                </div>
+                <div class="rules">
+                    规则：轮流从某一行取走任意数量的球，取走最后一颗球的人获胜！
+                </div>
+            </section>
+            
+            <section class="game-board" id="gameBoard">
+                <!-- 游戏行将通过JS动态生成 -->
+            </section>
+            
+            <section class="controls">
+                <button id="confirmBtn">确认移除</button>
+                <button id="resetBtn">重新开始</button>
+            </section>
+        </main>
+    </div>
+    
+    <div class="winner-message" id="winnerMessage">
+        <div class="winner-content">
+            <h2>游戏结束！</h2>
+            <p id="winnerText">恭喜你获胜！</p>
+            <button onclick="resetGame()">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+        // 一、游戏配置变量
+        const GAME_CONFIG = {
+            rows: [3, 4, 5, 6, 7], // 每行球数
+            playerNames: {
+                human: '你',
+                ai: 'AI'
+            },
+            messages: {
+                currentPlayer: '当前玩家：',
+                gameOver: '游戏结束！',
+                winText: '恭喜',
+                win: '获胜！',
+                sameRowError: '一次只能选择同一行的球！',
+                aiThinking: 'AI思考中...'
+            },
+            animation: {
+                aiThinkTime: 1500, // AI思考时间（毫秒）
+                removeAnimationTime: 500 // 移除动画时间
+            }
+        };
+
+        // 二、游戏状态变量
+        let currentPlayer = 1; // 1: 玩家, 2: AI
+        let selectedBalls = []; // 当前选中的球
+        let gameEnded = false;
+        let aiThinking = false;
+        let gameState = []; // 当前游戏状态
+
+        // 三、DOM元素引用
+        const gameBoard = document.getElementById('gameBoard');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const winnerMessage = document.getElementById('winnerMessage');
+        const winnerText = document.getElementById('winnerText');
+        const currentPlayerText = document.getElementById('currentPlayerText');
+
+        // 四、初始化游戏
+        function initGame() {
+            // 重置游戏状态
+            currentPlayer = 1;
+            selectedBalls = [];
+            gameEnded = false;
+            aiThinking = false;
+            gameState = [...GAME_CONFIG.rows];
+            
+            // 清空游戏板
+            gameBoard.innerHTML = '';
+            
+            // 创建游戏行
+            gameState.forEach((count, index) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.setAttribute('data-row', index);
+                
+                // 添加行标签
+                const label = document.createElement('div');
+                label.className = 'row-label';
+                label.textContent = `行 ${index + 1}`;
+                row.appendChild(label);
+                
+                // 添加球
+                for (let i = 0; i < count; i++) {
+                    const ball = document.createElement('div');
+                    ball.className = 'ball';
+                    ball.setAttribute('data-index', i);
+                    ball.addEventListener('click', selectBall);
+                    row.appendChild(ball);
+                }
+                
+                gameBoard.appendChild(row);
+            });
+            
+            // 绑定按钮事件
+            confirmBtn.addEventListener('click', confirmRemove);
+            resetBtn.addEventListener('click', resetGame);
+            
+            // 更新显示
+            updatePlayerDisplay();
+        }
+
+        // 五、游戏逻辑函数
+        // 1. 获取当前游戏状态
+        function getGameState() {
+            const state = [];
+            const rows = document.querySelectorAll('.row');
+            rows.forEach(row => {
+                const balls = row.querySelectorAll('.ball:not(.removed)').length;
+                state.push(balls);
+            });
+            return state;
+        }
+
+        // 2. AI策略（增强版尼姆博弈）
+        function getAIMove() {
+            const state = getGameState();
+            let xorSum = state.reduce((a, b) => a ^ b, 0);
+            
+            // 必胜策略
+            if (xorSum !== 0) {
+                for (let i = 0; i < state.length; i++) {
+                    if (state[i] > 0) {
+                        const target = state[i] ^ xorSum;
+                        if (target < state[i]) {
+                            return { row: i, remove: state[i] - target };
+                        }
+                    }
+                }
+            }
+            
+            // 高级随机策略
+            // 1. 优先选择球数最多的行
+            let maxRow = 0;
+            let maxCount = 0;
+            state.forEach((count, index) => {
+                if (count > maxCount) {
+                    maxCount = count;
+                    maxRow = index;
+                }
+            });
+            
+            // 2. 随机移除1到该行球数之间的球
+            const removeCount = Math.floor(Math.random() * maxCount) + 1;
+            return { row: maxRow, remove: removeCount };
+        }
+
+        // 3. 执行AI移动
+        function executeAIMove() {
+            if (gameEnded) return;
+            
+            aiThinking = true;
+            confirmBtn.disabled = true;
+            currentPlayerText.textContent = GAME_CONFIG.messages.aiThinking;
+            
+            setTimeout(() => {
+                const move = getAIMove();
+                const row = document.querySelector(`[data-row="${move.row}"]`);
+                const balls = Array.from(row.querySelectorAll('.ball:not(.removed)'));
+                
+                // AI选择球
+                for (let i = 0; i < move.remove && i < balls.length; i++) {
+                    balls[i].classList.add('selected');
+                    selectedBalls.push(balls[i]);
+                }
+                
+                // AI确认移除
+                setTimeout(() => {
+                    confirmRemove();
+                    aiThinking = false;
+                    confirmBtn.disabled = false;
+                }, 1000);
+            }, GAME_CONFIG.animation.aiThinkTime);
+        }
+
+        // 4. 玩家选择球
+        function selectBall(e) {
+            if (gameEnded || currentPlayer !== 1 || aiThinking) return;
+            
+            const ball = e.target;
+            if (ball.classList.contains('removed')) return;
+            
+            const row = ball.parentElement;
+            const rowIndex = row.getAttribute('data-row');
+            
+            // 检查是否在同一行选择
+            if (selectedBalls.length > 0) {
+                const firstSelectedRow = selectedBalls[0].parentElement.getAttribute('data-row');
+                if (rowIndex !== firstSelectedRow) {
+                    showNotification(GAME_CONFIG.messages.sameRowError);
+                    return;
+                }
+            }
+            
+            ball.classList.toggle('selected');
+            if (ball.classList.contains('selected')) {
+                selectedBalls.push(ball);
+            } else {
+                selectedBalls = selectedBalls.filter(b => b !== ball);
+            }
+        }
+
+        // 5. 确认移除
+        function confirmRemove() {
+            if (gameEnded || selectedBalls.length === 0) return;
+            
+            // 移除选中的球
+            selectedBalls.forEach(ball => {
+                ball.classList.add('removed');
+                setTimeout(() => {
+                    ball.style.display = 'none';
+                }, GAME_CONFIG.animation.removeAnimationTime);
+            });
+            
+            // 更新游戏状态
+            const row = selectedBalls[0].parentElement;
+            const rowIndex = parseInt(row.getAttribute('data-row'));
+            gameState[rowIndex] -= selectedBalls.length;
+            
+            selectedBalls = [];
+            
+            // 检查游戏是否结束
+            checkGameEnd();
+            
+            if (!gameEnded) {
+                // 切换玩家
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                updatePlayerDisplay();
+                
+                // 如果是AI回合
+                if (currentPlayer === 2) {
+                    executeAIMove();
+                }
+            }
+        }
+
+        // 6. 更新当前玩家显示
+        function updatePlayerDisplay() {
+            const playerText = currentPlayer === 1 ? 
+                GAME_CONFIG.playerNames.human : 
+                GAME_CONFIG.playerNames.ai;
+            currentPlayerText.textContent = playerText;
+        }
+
+        // 7. 检查游戏是否结束
+        function checkGameEnd() {
+            const remainingBalls = document.querySelectorAll('.ball:not(.removed)');
+            if (remainingBalls.length === 0) {
+                gameEnded = true;
+                showWinner();
+            }
+        }
+
+        // 8. 显示获胜者
+        function showWinner() {
+            const winner = currentPlayer === 1 ? 
+                GAME_CONFIG.playerNames.human : 
+                GAME_CONFIG.playerNames.ai;
+            winnerText.textContent = `${GAME_CONFIG.messages.winText}${winner}${GAME_CONFIG.messages.win}`;
+            winnerMessage.style.display = 'flex';
+        }
+
+        // 9. 重置游戏
+        function resetGame() {
+            gameEnded = false;
+            currentPlayer = 1;
+            selectedBalls = [];
+            aiThinking = false;
+            
+            // 重置所有球
+            const balls = document.querySelectorAll('.ball');
+            balls.forEach(ball => {
+                ball.classList.remove('selected', 'removed');
+                ball.style.display = 'block';
+            });
+            
+            // 隐藏获胜信息
+            winnerMessage.style.display = 'none';
+            confirmBtn.disabled = false;
+            
+            // 更新显示
+            updatePlayerDisplay();
+        }
+
+        // 10. 显示通知（替代alert）
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 50px;
+                font-size: 1.1rem;
+                z-index: 2000;
+                animation: fadeInDown 0.5s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'fadeInUp 0.5s ease reverse';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 2000);
+        }
+
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>

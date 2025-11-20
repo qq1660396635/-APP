@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>迷你塔防·终极版</title>
+    <style>
+        /* 一、基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        /* 二、游戏容器 */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(30, 30, 50, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 100%;
+            max-height: 100vh;
+            overflow: auto;
+        }
+
+        /* 三、画布样式 */
+        #gameCanvas {
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            border: 3px solid #3498db;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            max-width: 100%;
+            touch-action: none;
+        }
+
+        /* 四、控制面板 */
+        .control-panel {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-panel h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #3498db;
+            font-size: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 五、塔选择网格 */
+        .tower-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 10px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:disabled {
+            background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn.selected {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        /* 六、统计面板 */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #34495e;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: rgba(52, 73, 94, 0.6);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            background: rgba(52, 73, 94, 0.9);
+            transform: scale(1.05);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #bdc3c7;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ecf0f1;
+        }
+
+        .gold { color: #f1c40f; }
+        .red { color: #e74c3c; }
+        .blue { color: #3498db; }
+        .green { color: #27ae60; }
+
+        /* 七、游戏信息面板 */
+        .game-info {
+            background: rgba(52, 152, 219, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 八、模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h2 {
+            color: #3498db;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .modal p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+            color: #ecf0f1;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.5);
+        }
+
+        /* 九、移动端适配 */
+        @media (max-width: 768px) {
+            .game-container {
+                width: 100%;
+                max-width: 100%;
+                padding: 10px;
+            }
+            
+            #gameCanvas {
+                width: 100%;
+                height: auto;
+            }
+            
+            .tower-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            
+            .btn {
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+        }
+
+        /* 十、动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* 十一、难度提示 */
+        .difficulty-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: difficultyPulse 2s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes difficultyPulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-info" id="gameInfo">点击"开始游戏"开始冒险！</div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="control-panel">
+            <h2>塔防指挥中心</h2>
+            <div class="tower-grid">
+                <button class="btn" id="pistolBtn">🔫 手枪塔<br>💰 200</button>
+                <button class="btn" id="sniperBtn">🎯 狙击塔<br>💰 500</button>
+                <button class="btn" id="cannonBtn">💣 火炮塔<br>💰 800</button>
+                <button class="btn" id="laserBtn">⚡ 激光塔<br>💰 1200</button>
+                <button class="btn" id="freezeBtn">❄️ 冰冻塔<br>💰 1000</button>
+                <button class="btn" id="startBtn">🎮 开始游戏</button>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">💰 金币</span>
+                    <span class="stat-value gold" id="money">1000</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">❤️ 生命</span>
+                    <span class="stat-value red" id="lives">20</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🌊 波数</span>
+                    <span class="stat-value blue" id="wave">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⚔️ 击杀</span>
+                    <span class="stat-value green" id="kills">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结束模态框 -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content fade-in">
+            <h2 id="modalTitle">游戏结束</h2>
+            <p id="modalMessage">消息内容</p>
+            <p id="modalStats">统计信息</p>
+            <p id="modalFact" style="font-style: italic; color: #3498db;"></p>
+            <button class="modal-btn" id="modalBtn">确定</button>
+        </div>
+    </div>
+
+    <script>
+        // 一、游戏配置
+        const gameConfig = {
+            // 1. 画布设置 - 长方形设计
+            canvasWidth: 600,
+            canvasHeight: 400,
+            
+            // 2. 初始状态
+            initialMoney: 1000,
+            initialLives: 20,
+            
+            // 3. 地图背景配置
+            mapThemes: [
+                {
+                    name: "森林秘境",
+                    background: "linear-gradient(135deg, #134e5e 0%, #71b280 100%)",
+                    pathColor: "#8B4513",
+                    particleColor: "#90EE90"
+                },
+                {
+                    name: "火山熔岩",
+                    background: "linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)",
+                    pathColor: "#8B0000",
+                    particleColor: "#FF4500"
+                },
+                {
+                    name: "冰雪王国",
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    pathColor: "#4682B4",
+                    particleColor: "#87CEEB"
+                },
+                {
+                    name: "沙漠绿洲",
+                    background: "linear-gradient(135deg, #f2994a 0%, #f2c94c 100%)",
+                    pathColor: "#D2691E",
+                    particleColor: "#FFD700"
+                },
+                {
+                    name: "深海遗迹",
+                    background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)",
+                    pathColor: "#191970",
+                    particleColor: "#00CED1"
+                }
+            ],
+            
+            // 4. 塔类型配置 - 颜色加深
+            towerTypes: {
+                pistol: {
+                    cost: 200, damage: 1, range: 70, fireRate: 500,
+                    color: '#1e5a8e', name: '手枪塔', icon: '🔫' // 深蓝色
+                },
+                sniper: {
+                    cost: 500, damage: 5, range: 150, fireRate: 1500,
+                    color: '#6b3aa0', name: '狙击塔', icon: '🎯' // 深紫色
+                },
+                cannon: {
+                    cost: 800, damage: 3, range: 80, fireRate: 800,
+                    color: '#cc5500', name: '火炮塔', icon: '💣', splash: true, splashRange: 35 // 深橙色
+                },
+                laser: {
+                    cost: 1200, damage: 0.5, range: 130, fireRate: 50,
+                    color: '#006600', name: '激光塔', icon: '⚡', continuous: true // 深绿色
+                },
+                freeze: {
+                    cost: 1000, damage: 0.1, range: 100, fireRate: 1000,
+                    color: '#4682b4', name: '冰冻塔', icon: '❄️', freeze: true, freezeDuration: 2000 // 深天蓝色
+                }
+            },
+            
+            // 5. 敌人类型配置
+            enemyTypes: [
+                { hp: 3, speed: 0.7, color: '#e74c3c', reward: 50, name: '普通敌人', icon: '👾' },
+                { hp: 5, speed: 0.6, color: '#c0392b', reward: 80, name: '重装敌人', icon: '🤖' },
+                { hp: 8, speed: 0.4, color: '#8b4513', reward: 120, name: '精英敌人', icon: '👹' },
+                { hp: 15, speed: 0.3, color: '#2c3e50', reward: 200, name: 'BOSS敌人', icon: '👺' },
+                { hp: 2, speed: 1.4, color: '#f39c12', reward: 60, name: '快速敌人', icon: '🏃' }
+            ],
+            
+            // 6. 游戏参数
+            waveMultiplier: 0.15,
+            difficultyMultiplier: 0.1, // 每10关额外增加的难度系数
+            enemyBaseCount: 5,
+            enemyPerWave: 2,
+            baseSpawnInterval: 1500,
+            spawnIntervalDecrease: 30,
+            minSpawnInterval: 300,
+            waveCheckInterval: 800,
+            waveDelay: 1500,
+            pathWidth: 30,
+            towerSize: 30,
+            enemyRadius: 12,
+            bulletRadius: 4,
+            bulletSpeed: 5,
+            hitDistance: 10,
+            pathTolerance: 20,
+            freezeEffect: 0.3,
+            splashDamageRatio: 0.5
+        };
+
+        // 二、冷知识库
+        const coldKnowledge = [
+            "🌍 地球上最深的海沟是马里亚纳海沟，深度约11公里。",
+            "🐙 章鱼有三颗心脏和蓝色的血液。",
+            "🍯 蜂蜜永远不会变质，考古学家发现了3000年前的蜂蜜仍然可以食用。",
+            "🌙 月球每年远离地球约3.8厘米。",
+            "🐧 企鹅可以跳到1.5米的高度。",
+            "🌈 彩虹实际上是圆形的，我们在地面上只能看到半圆。",
+            "🦒 长颈鹿的舌头长达45厘米，可以清洁自己的耳朵。",
+            "🌊 海洋覆盖了地球表面的71%，但我们只探索了5%。",
+            "🦋 蝴蝶用脚来品尝食物的味道。",
+            "🐨 考拉每天睡眠时间长达22小时。",
+            "🌟 太阳的核心温度高达1500万摄氏度。",
+            "🐠 金鱼的记忆力其实可以持续3个月以上。",
+            "🍌 香蕉是浆果，而草莓不是。",
+            "🦅 鹰可以在10公里外看到猎物。",
+            "🌸 樱花原产于喜马拉雅山区，而不是日本。",
+            "🐢 有些乌龟可以活到150岁以上。",
+            "🌌 银河系包含2000-4000亿颗恒星。",
+            "🦘 袋鼠无法向后移动。",
+            "🍫 巧克力对狗是有毒的。",
+            "🌺 世界上最大的花是巨花魔芋，直径可达1米。"
+        ];
+
+        // 三、游戏初始化
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 1. 设置画布尺寸
+        canvas.width = gameConfig.canvasWidth;
+        canvas.height = gameConfig.canvasHeight;
+        
+        // 2. 游戏状态
+        let gameState = {
+            money: gameConfig.initialMoney,
+            lives: gameConfig.initialLives,
+            wave: 0,
+            kills: 0,
+            isPlaying: false,
+            selectedTower: null,
+            towers: [],
+            enemies: [],
+            bullets: [],
+            currentMap: 0,
+            path: [],
+            lastLevelComplete: 0 // 记录上次通关的波数，防止重复提示
+        };
+
+        // 四、贪吃蛇式路径生成器
+        function generateRandomPath() {
+            const path = [];
+            const points = 10 + Math.floor(Math.random() * 4); // 10-13个点，更长的路径
+            const margin = 40;
+            const segmentLength = gameConfig.canvasWidth / (points - 1);
+            
+            // 起始点在左侧
+            path.push({ x: 0, y: margin + Math.random() * (gameConfig.canvasHeight - 2 * margin) });
+            
+            // 生成中间点 - 贪吃蛇式上下拐弯
+            let lastDirection = 'right'; // 记录上次移动方向
+            let verticalCount = 0; // 连续垂直移动计数
+            
+            for (let i = 1; i < points - 1; i++) {
+                const x = (gameConfig.canvasWidth / (points - 1)) * i;
+                let y;
+                
+                // 贪吃蛇式移动逻辑
+                if (verticalCount >= 2) {
+                    // 连续两次垂直移动后，强制水平移动
+                    y = path[i-1].y;
+                    verticalCount = 0;
+                    lastDirection = 'right';
+                } else if (Math.random() < 0.6 && lastDirection === 'right') {
+                    // 60%概率垂直移动
+                    const maxY = gameConfig.canvasHeight - margin;
+                    const minY = margin;
+                    
+                    if (path[i-1].y > gameConfig.canvasHeight / 2) {
+                        // 在下半部分，向上移动
+                        y = Math.max(minY, path[i-1].y - (80 + Math.random() * 60));
+                    } else {
+                        // 在上半部分，向下移动
+                        y = Math.min(maxY, path[i-1].y + (80 + Math.random() * 60));
+                    }
+                    
+                    verticalCount++;
+                    lastDirection = 'vertical';
+                } else {
+                    // 水平移动，保持Y坐标或微调
+                    y = path[i-1].y + (Math.random() - 0.5) * 40;
+                    y = Math.max(margin, Math.min(gameConfig.canvasHeight - margin, y));
+                    lastDirection = 'right';
+                }
+                
+                path.push({ x, y });
+            }
+            
+            // 终点在右侧
+            path.push({ 
+                x: gameConfig.canvasWidth, 
+                y: margin + Math.random() * (gameConfig.canvasHeight - 2 * margin) 
+            });
+            
+            return path;
+        }
+
+        // 五、游戏对象类
+        // 1. 敌人类
+        class Enemy {
+            constructor(type, wave) {
+                this.type = type;
+                // 计算难度系数
+                const baseMultiplier = 1 + wave * gameConfig.waveMultiplier;
+                const difficultyBonus = Math.floor(wave / 10) * gameConfig.difficultyMultiplier;
+                const totalMultiplier = baseMultiplier + difficultyBonus;
+                
+                this.hp = type.hp * totalMultiplier;
+                this.maxHp = this.hp;
+                this.speed = type.speed * (1 + difficultyBonus * 0.5); // 速度也受难度影响
+                this.color = type.color;
+                this.reward = Math.floor(type.reward * (1 + difficultyBonus * 0.3)); // 奖励略微增加
+                this.pathIndex = 0;
+                this.x = gameState.path[0].x;
+                this.y = gameState.path[0].y;
+                this.alive = true;
+                this.frozen = false;
+                this.freezeTimer = 0;
+                this.icon = type.icon;
+            }
+
+            update() {
+                if (!this.alive) return;
+                
+                // 1. 冰冻状态处理
+                if (this.freezeTimer > 0) {
+                    this.freezeTimer--;
+                    this.frozen = this.freezeTimer > 0;
+                }
+                
+                // 2. 路径终点检测
+                if (this.pathIndex >= gameState.path.length - 1) {
+                    this.alive = false;
+                    gameState.lives--;
+                    updateUI();
+                    return;
+                }
+                
+                // 3. 移动逻辑
+                const target = gameState.path[this.pathIndex + 1];
+                const dx = target.x - this.x;
+                const dy = target.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 5) {
+                    this.pathIndex++;
+                } else {
+                    const currentSpeed = this.frozen ? 
+                        this.speed * gameConfig.freezeEffect : 
+                        this.speed;
+                    this.x += (dx / distance) * currentSpeed;
+                    this.y += (dy / distance) * currentSpeed;
+                }
+            }
+
+            draw() {
+                if (!this.alive) return;
+                
+                // 1. 绘制敌人图标
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                if (this.frozen) {
+                    ctx.globalAlpha = 0.7;
+                    ctx.fillStyle = '#87ceeb';
+                } else {
+                    ctx.globalAlpha = 1;
+                    ctx.fillStyle = this.color;
+                }
+                
+                ctx.fillText(this.icon, this.x, this.y);
+                
+                // 2. 冰冻效果
+                if (this.frozen) {
+                    ctx.strokeStyle = '#87ceeb';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, gameConfig.enemyRadius + 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+                
+                // 3. 血条
+                const barWidth = 25;
+                const barHeight = 4;
+                ctx.fillStyle = '#000';
+                ctx.fillRect(this.x - barWidth/2, this.y - 20, barWidth, barHeight);
+                
+                ctx.fillStyle = this.hp > this.maxHp/2 ? '#27ae60' : '#e74c3c';
+                ctx.fillRect(this.x - barWidth/2, this.y - 20, barWidth * (this.hp/this.maxHp), barHeight);
+            }
+
+            takeDamage(damage) {
+                this.hp -= damage;
+                if (this.hp <= 0) {
+                    this.alive = false;
+                    gameState.money += this.reward;
+                    gameState.kills++;
+                    updateUI();
+                }
+            }
+        }
+
+        // 2. 塔类
+        class Tower {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.lastFire = 0;
+                this.target = null;
+                this.laserTimer = 0;
+            }
+
+            update() {
+                // 1. 寻找目标
+                if (!this.target || !this.target.alive) {
+                    this.findTarget();
+                }
+                
+                // 2. 目标检测
+                if (this.target && this.getDistance(this.target) > this.type.range) {
+                    this.target = null;
+                }
+                
+                // 3. 攻击逻辑
+                if (this.target) {
+                    if (this.type.continuous) {
+                        this.laserTimer++;
+                        if (this.laserTimer % 3 === 0) {
+                            this.target.takeDamage(this.type.damage);
+                        }
+                    } else if (Date.now() - this.lastFire > this.type.fireRate) {
+                        gameState.bullets.push(new Bullet(this.x, this.y, this.target, this.type));
+                        this.lastFire = Date.now();
+                    }
+                }
+            }
+
+            draw() {
+                // 1. 绘制塔图标
+                ctx.font = '25px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.type.icon, this.x, this.y);
+                
+                // 2. 激光效果
+                if (this.type.continuous && this.target && this.target.alive) {
+                    ctx.strokeStyle = this.type.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.target.x, this.target.y);
+                    ctx.stroke();
+                }
+                
+                // 3. 射程范围
+                ctx.strokeStyle = this.type.color + '30';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.type.range, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            findTarget() {
+                let closestEnemy = null;
+                let closestDistance = Infinity;
+                
+                for (const enemy of gameState.enemies) {
+                    if (!enemy.alive) continue;
+                    const distance = this.getDistance(enemy);
+                    if (distance < this.type.range && distance < closestDistance) {
+                        closestDistance = distance;
+                        closestEnemy = enemy;
+                    }
+                }
+                
+                this.target = closestEnemy;
+            }
+
+            getDistance(enemy) {
+                const dx = enemy.x - this.x;
+                const dy = enemy.y - this.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+        }
+
+        // 3. 子弹类
+        class Bullet {
+            constructor(x, y, target, towerType) {
+                this.x = x;
+                this.y = y;
+                this.target = target;
+                this.damage = towerType.damage;
+                this.speed = gameConfig.bulletSpeed;
+                this.alive = true;
+                this.type = towerType;
+            }
+
+            update() {
+                if (!this.alive || !this.target.alive) {
+                    this.alive = false;
+                    return;
+                }
+                
+                const dx = this.target.x - this.x;
+                const dy = this.target.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < gameConfig.hitDistance) {
+                    this.target.takeDamage(this.damage);
+                    
+                    // 1. 冰冻效果
+                    if (this.type.freeze) {
+                        this.target.frozen = true;
+                        this.target.freezeTimer = this.type.freezeDuration;
+                    }
+                    
+                    // 2. 溅射伤害
+                    if (this.type.splash) {
+                        for (const enemy of gameState.enemies) {
+                            if (enemy !== this.target && enemy.alive) {
+                                const splashDistance = Math.sqrt(
+                                    Math.pow(enemy.x - this.target.x, 2) + 
+                                    Math.pow(enemy.y - this.target.y, 2)
+                                );
+                                if (splashDistance < this.type.splashRange) {
+                                    enemy.takeDamage(this.damage * gameConfig.splashDamageRatio);
+                                }
+                            }
+                        }
+                    }
+                    
+                    this.alive = false;
+                } else {
+                    this.x += (dx / distance) * this.speed;
+                    this.y += (dy / distance) * this.speed;
+                }
+            }
+
+            draw() {
+                if (!this.alive) return;
+                ctx.fillStyle = this.type.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, gameConfig.bulletRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 六、游戏核心功能
+        // 1. 游戏主循环
+        function gameLoop() {
+            if (!gameState.isPlaying) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawPath();
+            
+            // 1. 更新塔
+            gameState.towers.forEach(tower => {
+                tower.update();
+                tower.draw();
+            });
+            
+            // 2. 更新敌人
+            gameState.enemies = gameState.enemies.filter(enemy => {
+                enemy.update();
+                enemy.draw();
+                return enemy.alive;
+            });
+            
+            // 3. 更新子弹
+            gameState.bullets = gameState.bullets.filter(bullet => {
+                bullet.update();
+                bullet.draw();
+                return bullet.alive;
+            });
+            
+            // 4. 游戏结束检测
+            if (gameState.lives <= 0) {
+                gameOver();
+                return;
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 2. 绘制背景
+        function drawBackground() {
+            const theme = gameConfig.mapThemes[gameState.currentMap];
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            
+            // 根据主题设置渐变色
+            const colors = theme.background.match(/#[a-fA-F0-9]{6}/g);
+            gradient.addColorStop(0, colors[0]);
+            gradient.addColorStop(1, colors[1]);
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 添加装饰性粒子
+            ctx.fillStyle = theme.particleColor + '30';
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 3 + 1;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 3. 绘制路径
+        function drawPath() {
+            const theme = gameConfig.mapThemes[gameState.currentMap];
+            ctx.strokeStyle = theme.pathColor;
+            ctx.lineWidth = gameConfig.pathWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(gameState.path[0].x, gameState.path[0].y);
+            
+            for (let i = 1; i < gameState.path.length; i++) {
+                ctx.lineTo(gameState.path[i].x, gameState.path[i].y);
+            }
+            ctx.stroke();
+        }
+
+        // 4. 波次生成
+        let enemySpawned = 0;
+
+        function spawnWave() {
+            gameState.wave++;
+            
+            // 检查是否为10的倍数，显示难度警告
+            if (gameState.wave % 10 === 0) {
+                showDifficultyWarning();
+            }
+            
+            const enemyCount = gameConfig.enemyBaseCount + gameState.wave * gameConfig.enemyPerWave;
+            enemySpawned = 0;
+            
+            updateGameInfo(`🌊 第 ${gameState.wave} 波敌人来袭！`);
+            
+            const spawnInterval = setInterval(() => {
+                if (enemySpawned < enemyCount) {
+                    const enemyTypeIndex = Math.min(
+                        Math.floor(gameState.wave / 3) + 
+                        Math.floor(Math.random() * 3),
+                        gameConfig.enemyTypes.length - 1
+                    );
+                    gameState.enemies.push(new Enemy(gameConfig.enemyTypes[enemyTypeIndex], gameState.wave));
+                    enemySpawned++;
+                } else {
+                    clearInterval(spawnInterval);
+                }
+            }, Math.max(gameConfig.minSpawnInterval, gameConfig.baseSpawnInterval - gameState.wave * gameConfig.spawnIntervalDecrease));
+        }
+
+        // 5. 显示难度警告
+        function showDifficultyWarning() {
+            const warning = document.createElement('div');
+            warning.className = 'difficulty-warning';
+            warning.textContent = `⚠️ 难度提升！第 ${gameState.wave} 波`;
+            document.body.appendChild(warning);
+            
+            setTimeout(() => {
+                document.body.removeChild(warning);
+            }, 2000);
+        }
+
+        // 6. UI更新
+        function updateUI() {
+            document.getElementById('money').textContent = gameState.money;
+            document.getElementById('lives').textContent = gameState.lives;
+            document.getElementById('wave').textContent = gameState.wave;
+            document.getElementById('kills').textContent = gameState.kills;
+            
+            // 更新按钮状态
+            document.getElementById('pistolBtn').disabled = gameState.money < gameConfig.towerTypes.pistol.cost;
+            document.getElementById('sniperBtn').disabled = gameState.money < gameConfig.towerTypes.sniper.cost;
+            document.getElementById('cannonBtn').disabled = gameState.money < gameConfig.towerTypes.cannon.cost;
+            document.getElementById('laserBtn').disabled = gameState.money < gameConfig.towerTypes.laser.cost;
+            document.getElementById('freezeBtn').disabled = gameState.money < gameConfig.towerTypes.freeze.cost;
+        }
+
+        // 7. 游戏信息更新
+        function updateGameInfo(message) {
+            document.getElementById('gameInfo').textContent = message;
+            document.getElementById('gameInfo').classList.add('fade-in');
+            setTimeout(() => {
+                document.getElementById('gameInfo').classList.remove('fade-in');
+            }, 500);
+        }
+
+        // 8. 游戏结束
+        function gameOver() {
+            gameState.isPlaying = false;
+            const fact = coldKnowledge[Math.floor(Math.random() * coldKnowledge.length)];
+            
+            showModal(
+                "💀 游戏结束",
+                `很遗憾，你的防线被突破了！`,
+                `波数：${gameState.wave} | 击杀：${gameState.kills}`,
+                `💡 冷知识：${fact}`
+            );
+        }
+
+        // 9. 通关奖励
+        function levelComplete() {
+            // 防止重复提示
+            if (gameState.wave === gameState.lastLevelComplete) {
+                return;
+            }
+            
+            gameState.lastLevelComplete = gameState.wave;
+            const fact = coldKnowledge[Math.floor(Math.random() * coldKnowledge.length)];
+            const bonus = 100 + gameState.wave * 50;
+            gameState.money += bonus;
+            
+            showModal(
+                "🎉 关卡完成",
+                `恭喜通过第 ${gameState.wave} 波！`,
+                `奖励金币：${bonus} | 总击杀：${gameState.kills}`,
+                `💡 冷知识：${fact}`,
+                () => {
+                    // 切换地图主题
+                    gameState.currentMap = (gameState.currentMap + 1) % gameConfig.mapThemes.length;
+                    gameState.path = generateRandomPath();
+                    updateGameInfo(`🗺️ 进入新地图：${gameConfig.mapThemes[gameState.currentMap].name}`);
+                }
+            );
+        }
+
+        // 10. 模态框控制
+        function showModal(title, message, stats, fact, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalStats').textContent = stats;
+            document.getElementById('modalFact').textContent = fact || '';
+            document.getElementById('gameModal').style.display = 'flex';
+            
+            document.getElementById('modalBtn').onclick = () => {
+                document.getElementById('gameModal').style.display = 'none';
+                if (callback) callback();
+                if (gameState.lives > 0) {
+                    setTimeout(spawnWave, 1000);
+                }
+            };
+        }
+
+        // 七、事件处理
+        // 1. 画布点击事件（支持移动端）
+        function getEventPosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            if (e.touches) {
+                return {
+                    x: (e.touches[0].clientX - rect.left) * scaleX,
+                    y: (e.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas.addEventListener('click', handleCanvasClick);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('click', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        function handleCanvasClick(e) {
+            if (!gameState.isPlaying || !gameState.selectedTower) return;
+            
+            const pos = getEventPosition(e);
+            const x = pos.x;
+            const y = pos.y;
+            
+            // 检查是否在路径上
+            let onPath = false;
+            for (let i = 0; i < gameState.path.length - 1; i++) {
+                const p1 = gameState.path[i];
+                const p2 = gameState.path[i + 1];
+                
+                if ((x >= Math.min(p1.x, p2.x) - gameConfig.pathTolerance && 
+                     x <= Math.max(p1.x, p2.x) + gameConfig.pathTolerance) &&
+                    (y >= Math.min(p1.y, p2.y) - gameConfig.pathTolerance && 
+                     y <= Math.max(p1.y, p2.y) + gameConfig.pathTolerance)) {
+                    onPath = true;
+                    break;
+                }
+            }
+            
+            // 放置塔
+            if (!onPath) {
+                const towerType = gameConfig.towerTypes[gameState.selectedTower];
+                if (gameState.money >= towerType.cost) {
+                    gameState.towers.push(new Tower(x, y, towerType));
+                    gameState.money -= towerType.cost;
+                    gameState.selectedTower = null;
+                    updateUI();
+                    updateGameInfo(`🏗️ 成功建造 ${towerType.name}！`);
+                    
+                    // 清除所有按钮选中状态
+                    document.querySelectorAll('.btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                }
+            }
+        }
+
+        // 2. 按钮事件
+        function setupTowerButton(towerId, towerKey) {
+            document.getElementById(towerId).addEventListener('click', () => {
+                if (gameState.money >= gameConfig.towerTypes[towerKey].cost) {
+                    // 清除其他按钮选中状态
+                    document.querySelectorAll('.btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    
+                    // 设置当前按钮为选中状态
+                    document.getElementById(towerId).classList.add('selected');
+                    gameState.selectedTower = towerKey;
+                    updateGameInfo(`🎯 选择建造 ${gameConfig.towerTypes[towerKey].name}`);
+                }
+            });
+        }
+
+        setupTowerButton('pistolBtn', 'pistol');
+        setupTowerButton('sniperBtn', 'sniper');
+        setupTowerButton('cannonBtn', 'cannon');
+        setupTowerButton('laserBtn', 'laser');
+        setupTowerButton('freezeBtn', 'freeze');
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!gameState.isPlaying) {
+                gameState.isPlaying = true;
+                gameState.money = gameConfig.initialMoney;
+                gameState.lives = gameConfig.initialLives;
+                gameState.wave = 0;
+                gameState.kills = 0;
+                gameState.towers = [];
+                gameState.enemies = [];
+                gameState.bullets = [];
+                gameState.currentMap = Math.floor(Math.random() * gameConfig.mapThemes.length);
+                gameState.path = generateRandomPath();
+                gameState.lastLevelComplete = 0; // 重置通关记录
+                
+                updateUI();
+                updateGameInfo(`🎮 游戏开始！当前地图：${gameConfig.mapThemes[gameState.currentMap].name}`);
+                spawnWave();
+                gameLoop();
+            }
+        });
+
+        // 3. 波次检测
+        setInterval(() => {
+            if (gameState.isPlaying && gameState.enemies.length === 0) {
+                setTimeout(() => {
+                    if (gameState.wave > 0 && gameState.wave % 5 === 0) {
+                        levelComplete();
+                    } else {
+                        spawnWave();
+                    }
+                }, gameConfig.waveDelay);
+            }
+        }, gameConfig.waveCheckInterval);
+
+        // 初始化UI
+        updateUI();
+    </script>
+</body>
+</html>

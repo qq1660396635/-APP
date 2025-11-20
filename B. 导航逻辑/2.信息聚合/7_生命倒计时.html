@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生命倒计时 - 珍惜每一刻</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0505 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 星空背景效果 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        /* 宇宙时间尺度 - 简化版 */
+        .cosmic-timer {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            font-size: 0.9em;
+        }
+
+        .cosmic-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .cosmic-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cosmic-icon {
+            font-size: 1.2em;
+        }
+
+        .cosmic-text {
+            color: #87ceeb;
+        }
+
+        .cosmic-time {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* 主要倒计时部分 */
+        .main-timer {
+            background: rgba(139, 0, 0, 0.1);
+            border: 2px solid #ff0000;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(255, 0, 0, 0.6); }
+        }
+
+        .input-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            color: #ff6b6b;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .input-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .birthday-input {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: 2px solid #ff0000;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .birthday-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            transform: scale(1.02);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-clear {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-clear:hover {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ff0000;
+        }
+
+        /* 死亡倒计时显示 */
+        .death-countdown {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .death-countdown.active {
+            display: block;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .warning-title {
+            font-size: 1.8em;
+            color: #ff0000;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+            margin-bottom: 15px;
+            font-weight: bold;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .time-item {
+            background: rgba(255, 0, 0, 0.2);
+            padding: 15px 10px;
+            border-radius: 8px;
+            border: 1px solid #ff0000;
+            transition: all 0.3s ease;
+        }
+
+        .time-item:hover {
+            transform: scale(1.05);
+            background: rgba(255, 0, 0, 0.3);
+        }
+
+        .time-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ff0000;
+            text-shadow: 0 0 8px rgba(255, 0, 0, 0.8);
+        }
+
+        .time-label {
+            font-size: 0.8em;
+            color: #ff9999;
+            margin-top: 3px;
+        }
+
+        /* 鼓励文字 */
+        .inspiration {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 8px;
+            border: 1px solid #ffd700;
+            font-size: 0.9em;
+        }
+
+        .inspiration-text {
+            color: #ffd700;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .warning-title {
+                font-size: 1.4em;
+            }
+            .time-value {
+                font-size: 1.5em;
+            }
+            .cosmic-info {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 星空背景 -->
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <!-- 宇宙时间尺度 - 简化版 -->
+        <div class="cosmic-timer">
+            <div class="cosmic-info">
+                <div class="cosmic-item">
+                    <span class="cosmic-icon">🌟</span>
+                    <span class="cosmic-text">距离太阳变白矮星:</span>
+                    <span class="cosmic-time">约50亿年</span>
+                </div>
+                <div class="cosmic-item">
+                    <span class="cosmic-icon">🌌</span>
+                    <span class="cosmic-text">距离与仙女座相撞:</span>
+                    <span class="cosmic-time">约37亿年</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要倒计时 -->
+        <div class="main-timer">
+            <div class="input-section">
+                <label class="input-label" for="birthdayInput">⚠️ 请输入你/父母的生日 ⚠️</label>
+                <div class="input-controls">
+                    <input type="date" id="birthdayInput" class="birthday-input">
+                    <button class="btn btn-clear" id="clearBtn">清除数据</button>
+                </div>
+            </div>
+
+            <div class="death-countdown" id="deathCountdown">
+                <div class="warning-title">⚠️ 死亡倒计时 ⚠️</div>
+                <div class="time-grid">
+                    <div class="time-item">
+                        <div class="time-value" id="yearsLeft">0</div>
+                        <div class="time-label">年</div>
+                    </div>
+                    <div class="time-item">
+                        <div class="time-value" id="daysLeft">0</div>
+                        <div class="time-label">天</div>
+                    </div>
+                    <div class="time-item">
+                        <div class="time-value" id="hoursLeft">0</div>
+                        <div class="time-label">小时</div>
+                    </div>
+                    <div class="time-item">
+                        <div class="time-value" id="minutesLeft">0</div>
+                        <div class="time-label">分钟</div>
+                    </div>
+                    <div class="time-item">
+                        <div class="time-value" id="secondsLeft">0</div>
+                        <div class="time-label">秒</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="inspiration">
+                <p class="inspiration-text">
+                    "生命不是用来计算的，而是用来体验的。活在当下，创造意义。"
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 创建星空背景
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const numberOfStars = 150;
+            
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // 初始化星空
+        createStars();
+
+        // 获取DOM元素
+        const birthdayInput = document.getElementById('birthdayInput');
+        const deathCountdown = document.getElementById('deathCountdown');
+        const clearBtn = document.getElementById('clearBtn');
+        const yearsLeft = document.getElementById('yearsLeft');
+        const daysLeft = document.getElementById('daysLeft');
+        const hoursLeft = document.getElementById('hoursLeft');
+        const minutesLeft = document.getElementById('minutesLeft');
+        const secondsLeft = document.getElementById('secondsLeft');
+
+        let countdownInterval;
+
+        // 本地存储相关函数
+        function saveBirthday(birthday) {
+            localStorage.setItem('deathCountdownBirthday', birthday);
+        }
+
+        function loadBirthday() {
+            return localStorage.getItem('deathCountdownBirthday');
+        }
+
+        function clearBirthday() {
+            localStorage.removeItem('deathCountdownBirthday');
+        }
+
+        // 计算死亡倒计时
+        function calculateDeathCountdown(birthday) {
+            const birthDate = new Date(birthday);
+            const deathDate = new Date(birthDate);
+            deathDate.setFullYear(deathDate.getFullYear() + 78); // 默认78年寿命
+
+            const now = new Date();
+            const difference = deathDate - now;
+
+            if (difference <= 0) {
+                return {
+                    years: 0,
+                    days: 0,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0
+                };
+            }
+
+            const years = Math.floor(difference / (1000 * 60 * 60 * 24 * 365));
+            const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            return { years, days, hours, minutes, seconds };
+        }
+
+        // 更新倒计时显示
+        function updateCountdown() {
+            const birthday = birthdayInput.value;
+            if (!birthday) return;
+
+            const timeLeft = calculateDeathCountdown(birthday);
+            
+            yearsLeft.textContent = timeLeft.years;
+            daysLeft.textContent = timeLeft.days;
+            hoursLeft.textContent = timeLeft.hours;
+            minutesLeft.textContent = timeLeft.minutes;
+            secondsLeft.textContent = timeLeft.seconds;
+        }
+
+        // 启动倒计时
+        function startCountdown(birthday) {
+            deathCountdown.classList.add('active');
+            
+            // 清除之前的倒计时
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            // 立即更新一次
+            updateCountdown();
+            
+            // 每秒更新
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // 停止倒计时
+        function stopCountdown() {
+            deathCountdown.classList.remove('active');
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        }
+
+        // 监听生日输入
+        birthdayInput.addEventListener('change', function() {
+            const birthday = this.value;
+            if (birthday) {
+                saveBirthday(birthday);
+                startCountdown(birthday);
+            } else {
+                clearBirthday();
+                stopCountdown();
+            }
+        });
+
+        // 清除按钮事件
+        clearBtn.addEventListener('click', function() {
+            birthdayInput.value = '';
+            clearBirthday();
+            stopCountdown();
+        });
+
+        // 页面加载时检查本地存储
+        window.addEventListener('load', function() {
+            const savedBirthday = loadBirthday();
+            if (savedBirthday) {
+                birthdayInput.value = savedBirthday;
+                startCountdown(savedBirthday);
+            }
+        });
+
+        // 宇宙时间倒计时（动态效果）
+        function animateCosmicTimers() {
+            const cosmicTimes = document.querySelectorAll('.cosmic-time');
+            
+            cosmicTimes.forEach((element, index) => {
+                setInterval(() => {
+                    element.style.opacity = element.style.opacity === '0.5' ? '1' : '0.5';
+                }, 2000 + index * 500);
+            });
+        }
+
+        animateCosmicTimers();
+    </script>
+</body>
+</html>

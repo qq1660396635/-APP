@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天子御驾 - 九天之上</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Ma Shan Zheng', cursive, sans-serif;
+            color: #f8f3e0;
+            overflow-x: hidden;
+            position: relative;
+            font-size: 13px;
+            line-height: 1.4;
+            min-height: 100vh;
+            padding: 5px;
+        }
+
+        /* 30种随机渐变背景 */
+        .gradient-bg-1 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .gradient-bg-2 { background: linear-gradient(135deg, #0f3443 0%, #34e89e 100%); }
+        .gradient-bg-3 { background: linear-gradient(135deg, #2d1b69 0%, #0f0c29 100%); }
+        .gradient-bg-4 { background: linear-gradient(135deg, #141e30 0%, #243b55 100%); }
+        .gradient-bg-5 { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+        .gradient-bg-6 { background: linear-gradient(135deg, #2c003e 0%, #512b58 100%); }
+        .gradient-bg-7 { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
+        .gradient-bg-8 { background: linear-gradient(135deg, #16222a 0%, #3a6073 100%); }
+        .gradient-bg-9 { background: linear-gradient(135deg, #232526 0%, #414345 100%); }
+        .gradient-bg-10 { background: linear-gradient(135deg, #000428 0%, #004e92 100%); }
+        .gradient-bg-11 { background: linear-gradient(135deg, #1a237e 0%, #283593 100%); }
+        .gradient-bg-12 { background: linear-gradient(135deg, #263238 0%, #37474f 100%); }
+        .gradient-bg-13 { background: linear-gradient(135deg, #434343 0%, #000000 100%); }
+        .gradient-bg-14 { background: linear-gradient(135deg, #1b1e2b 0%, #2d3561 100%); }
+        .gradient-bg-15 { background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%); }
+        .gradient-bg-16 { background: linear-gradient(135deg, #2b1b3d 0%, #1f1c2c 100%); }
+        .gradient-bg-17 { background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%); }
+        .gradient-bg-18 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        .gradient-bg-19 { background: linear-gradient(135deg, #360033 0%, #0b8793 100%); }
+        .gradient-bg-20 { background: linear-gradient(135deg, #0b486b 0%, #f56217 100%); }
+        .gradient-bg-21 { background: linear-gradient(135deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%); }
+        .gradient-bg-22 { background: linear-gradient(135deg, #134e5e 0%, #71b280 100%); }
+        .gradient-bg-23 { background: linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%); }
+        .gradient-bg-24 { background: linear-gradient(135deg, #283048 0%, #859398 100%); }
+        .gradient-bg-25 { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
+        .gradient-bg-26 { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%); }
+        .gradient-bg-27 { background: linear-gradient(135deg, #232526 0%, #414345 50%, #2c3e50 100%); }
+        .gradient-bg-28 { background: linear-gradient(135deg, #0f2027 0%, #203a43 30%, #2c5364 100%); }
+        .gradient-bg-29 { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3443 100%); }
+        .gradient-bg-30 { background: linear-gradient(135deg, #2d1b69 0%, #0f0c29 50%, #24243e 100%); }
+
+        /* 容器 */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(10, 10, 10, 0.92);
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            overflow: hidden;
+        }
+
+        /* 头部区域 - 紧凑设计 */
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(20, 20, 20, 0.8);
+            border-bottom: 1px solid #d4af37;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 160px;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border: 3px solid #d4af37;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, transparent 70%);
+            border-radius: 8px;
+            z-index: 1;
+            animation: pulse 3s ease-in-out infinite alternate;
+        }
+
+        .upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 8px;
+            z-index: 3;
+        }
+
+        .avatar:hover .upload-overlay {
+            opacity: 1;
+        }
+
+        .upload-text {
+            color: #d4af37;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        #avatarInput {
+            display: none;
+        }
+
+        .title-container {
+            flex: 1;
+        }
+
+        .main-title {
+            font-size: 2rem;
+            color: #d4af37;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+            letter-spacing: 0.15rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a83232;
+            text-shadow: 0 0 8px rgba(168, 50, 50, 0.6);
+            letter-spacing: 0.08rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .title-decoration {
+            display: flex;
+            align-items: center;
+            margin-top: 0.3rem;
+        }
+
+        .decoration-line {
+            height: 1px;
+            flex: 1;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+        }
+
+        .decoration-symbol {
+            font-size: 1.2rem;
+            color: #d4af37;
+            margin: 0 0.8rem;
+            animation: rotate 5s linear infinite;
+        }
+
+        /* 清理缓存按钮 */
+        .clear-cache-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(168, 50, 50, 0.9);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .clear-cache-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(168, 50, 50, 0.5);
+        }
+
+        .clear-cache-btn i {
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        /* 主要内容区域 - 密集三列布局 */
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 15px;
+        }
+
+        .section {
+            background: rgba(15, 15, 15, 0.7);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #d4af37;
+            margin-bottom: 0.8rem;
+            text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+            position: relative;
+            padding-bottom: 6px;
+            text-align: center;
+        }
+
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+        }
+
+        /* 个人介绍 */
+        .intro-text {
+            font-size: 0.85rem;
+            line-height: 1.4rem;
+            margin-bottom: 0.8rem;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+            text-align: justify;
+        }
+
+        .intro-text p {
+            margin-bottom: 0.6rem;
+        }
+
+        /* 能力卡片 - 三列布局 */
+        .abilities {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .ability-card {
+            background: rgba(25, 25, 25, 0.8);
+            border: 1px solid #d4af37;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .ability-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .ability-card .icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.4rem;
+            color: #d4af37;
+        }
+
+        .ability-card h4 {
+            font-size: 0.9rem;
+            color: #d4af37;
+            margin-bottom: 0.4rem;
+        }
+
+        .ability-card p {
+            font-size: 0.75rem;
+            line-height: 1.2rem;
+        }
+
+        /* 功绩部分 - 三列布局 */
+        .achievements-section {
+            grid-column: span 3;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .achievement-card {
+            background: rgba(25, 25, 25, 0.8);
+            border: 1px solid #a83232;
+            border-radius: 6px;
+            padding: 12px;
+            position: relative;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(168, 50, 50, 0.3);
+        }
+
+        .achievement-date {
+            font-size: 0.9rem;
+            color: #d4af37;
+            margin-bottom: 0.4rem;
+            font-weight: bold;
+        }
+
+        .achievement-title {
+            font-size: 1rem;
+            color: #d4af37;
+            margin-bottom: 0.4rem;
+        }
+
+        .achievement-desc {
+            font-size: 0.8rem;
+            line-height: 1.3rem;
+        }
+
+        /* 图库部分 - 三列布局 */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .gallery-item {
+            position: relative;
+            height: 120px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .gallery-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 6px;
+            text-align: center;
+            color: #d4af37;
+            font-size: 0.8rem;
+        }
+
+        /* 页脚 */
+        footer {
+            padding: 12px;
+            text-align: center;
+            background: rgba(15, 15, 15, 0.9);
+            border-top: 1px solid #a83232;
+        }
+
+        .footer-content p {
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .social-icon {
+            font-size: 1.2rem;
+            color: #d4af37;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-3px);
+            color: #f8f3e0;
+        }
+
+        /* 动画 */
+        @keyframes pulse {
+            from { opacity: 0.3; }
+            to { opacity: 0.6; }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .abilities {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .achievements-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .abilities {
+                grid-template-columns: 1fr;
+            }
+            
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 12px;
+            }
+            
+            .avatar-container {
+                margin-right: 0;
+                margin-bottom: 12px;
+                width: 100px;
+                height: 130px;
+            }
+            
+            .main-title {
+                font-size: 1.6rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 3px;
+                font-size: 12px;
+            }
+            
+            .container {
+                border-radius: 8px;
+            }
+            
+            .main-title {
+                font-size: 1.4rem;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+            }
+            
+            .section-title {
+                font-size: 1.1rem;
+            }
+            
+            .intro-text {
+                font-size: 0.8rem;
+                line-height: 1.3rem;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 滚动动画 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.5s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(212, 175, 55, 0.95);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+            max-width: 80%;
+            text-align: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* 图片裁剪模态框 */
+        .crop-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+        }
+
+        .crop-modal.show {
+            display: flex;
+        }
+
+        .crop-container {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            background: rgba(20, 20, 20, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            border: 2px solid #d4af37;
+        }
+
+        .crop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: #d4af37;
+        }
+
+        .crop-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .crop-close {
+            background: none;
+            border: none;
+            color: #d4af37;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .crop-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .crop-content {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            max-width: 80vw;
+            max-height: 50vh;
+            margin: 0 auto;
+            overflow: hidden;
+            border: 2px solid #d4af37;
+            border-radius: 5px;
+        }
+
+        .crop-image {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+
+        .crop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .crop-area {
+            position: absolute;
+            border: 2px dashed #d4af37;
+            background: rgba(212, 175, 55, 0.2);
+            cursor: move;
+            pointer-events: all;
+        }
+
+        .crop-handle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #d4af37;
+            border: 1px solid #000;
+            border-radius: 50%;
+        }
+
+        .crop-handle.nw { top: -4px; left: -4px; cursor: nw-resize; }
+        .crop-handle.ne { top: -4px; right: -4px; cursor: ne-resize; }
+        .crop-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+        .crop-handle.se { bottom: -4px; right: -4px; cursor: se-resize; }
+
+        .crop-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .crop-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .crop-confirm {
+            background: #d4af37;
+            color: #000;
+        }
+
+        .crop-confirm:hover {
+            background: #f8f3e0;
+            transform: translateY(-2px);
+        }
+
+        .crop-cancel {
+            background: #a83232;
+            color: #fff;
+        }
+
+        .crop-cancel:hover {
+            background: #d9534f;
+            transform: translateY(-2px);
+        }
+
+        .crop-info {
+            text-align: center;
+            color: #d4af37;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 清理缓存按钮 -->
+    <button class="clear-cache-btn" onclick="clearCache()" title="清理缓存">
+        <i class="fas fa-trash"></i>
+    </button>
+
+    <!-- 提示消息 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- 图片裁剪模态框 -->
+    <div id="cropModal" class="crop-modal">
+        <div class="crop-container">
+            <div class="crop-header">
+                <div class="crop-title">裁剪头像</div>
+                <button class="crop-close" onclick="closeCropModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="crop-info">拖动虚线框调整裁剪区域</div>
+            <div class="crop-content">
+                <img id="cropImage" class="crop-image" src="" alt="裁剪图片">
+                <div class="crop-overlay">
+                    <div id="cropArea" class="crop-area">
+                        <div class="crop-handle nw"></div>
+                        <div class="crop-handle ne"></div>
+                        <div class="crop-handle sw"></div>
+                        <div class="crop-handle se"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="crop-buttons">
+                <button class="crop-btn crop-confirm" onclick="confirmCrop()">确认裁剪</button>
+                <button class="crop-btn crop-cancel" onclick="closeCropModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 头部区域 -->
+        <header class="header fade-in">
+            <div class="avatar-container">
+                <div class="avatar" onclick="document.getElementById('avatarInput').click()">
+                    <img id="avatarImg" src="https://via.placeholder.com/300x400/1a1a1a/d4af37?text=天子御照" alt="天子御照">
+                    <div class="upload-overlay">
+                        <div class="upload-text">
+                            <i class="fas fa-camera"></i><br>
+                            点击上传头像
+                        </div>
+                    </div>
+                </div>
+                <div class="avatar-glow"></div>
+                <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(event)">
+            </div>
+            
+            <div class="title-container">
+                <h1 class="main-title">天子</h1>
+                <h2 class="subtitle">九天之上 · 寰宇之主</h2>
+                
+                <div class="title-decoration">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-symbol">卍</div>
+                    <div class="decoration-line"></div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- 主要内容区域 - 三列布局 -->
+        <div class="main-content">
+            <!-- 个人介绍 -->
+            <section class="section intro-section fade-in">
+                <h2 class="section-title">朕乃九天之子</h2>
+                <div class="intro-text">
+                    <p>上可登临九天揽月，下可遨游四海擒龙。文能提笔安天下，武能上马定乾坤。掌日月之轮转，握星辰之轨迹。</p>
+                    <p>自幼习文练武，三岁能诗，五岁能剑，七岁已通晓兵法谋略。及至弱冠之年，已遍历九州四海，访名山胜水。</p>
+                    <p>治国之道，以仁为本，以武为辅。轻徭薄赋，使民休养生息；开科取士，选拔天下英才。</p>
+                </div>
+                
+                <div class="abilities">
+                    <div class="ability-card">
+                        <div class="icon">⚔️</div>
+                        <h4>武艺超群</h4>
+                        <p>十八般武艺样样精通，一剑光寒十九州。独创天子九剑，破尽天下武功。</p>
+                    </div>
+                    <div class="ability-card">
+                        <div class="icon">📜</div>
+                        <h4>文采斐然</h4>
+                        <p>诗词歌赋信手拈来，文章惊动天上人。著作等身流传百世，书法绘画独步天下。</p>
+                    </div>
+                    <div class="ability-card">
+                        <div class="icon">🌌</div>
+                        <h4>通天彻地</h4>
+                        <p>通晓阴阳五行，掌握天地玄机。可呼风唤雨，驱雷策电，观星象而知天下大势。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 图库 -->
+            <section class="section gallery-section fade-in">
+                <h2 class="section-title">御影仙踪</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <div class="gallery-img" style="background-image: url('https://images.unsplash.com/photo-1547981609-4b6bf67e6d4a?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="gallery-caption">御剑飞行</div>
+                    </div>
+                    <div class="gallery-item">
+                        <div class="gallery-img" style="background-image: url('https://images.unsplash.com/photo-1518655048521-f130df041f66?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="gallery-caption">挥毫泼墨</div>
+                    </div>
+                    <div class="gallery-item">
+                        <div class="gallery-img" style="background-image: url('https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="gallery-caption">坐镇天庭</div>
+                    </div>
+                    <div class="gallery-item">
+                        <div class="gallery-img" style="background-image: url('https://images.unsplash.com/photo-1519904981063-b0cf448d479e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="gallery-caption">云海漫步</div>
+                    </div>
+                    <div class="gallery-item">
+                        <div class="gallery-img" style="background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3a4730?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="gallery-caption">观星望月</div>
+                    </div>
+                    <div class="gallery-item">
+                        <div class="gallery-img" style="background-image: url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="gallery-caption">御风而行</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 更多介绍 -->
+            <section class="section more-info-section fade-in">
+                <h2 class="section-title">天下归心</h2>
+                <div class="intro-text">
+                    <p>朕自登基以来，宵衣旰食，不敢有丝毫懈怠。每日批阅奏章至深夜，只为天下苍生能安居乐业。</p>
+                    <p>设科举，开言路，纳贤才。不论出身贵贱，唯才是举。朝堂之上，群贤毕至；江湖之中，英雄归心。</p>
+                    <p>修水利，兴农桑，减赋税。使百姓仓廪实而知礼节，衣食足而知荣辱。此乃治国之本也。</p>
+                </div>
+                
+                <div class="abilities">
+                    <div class="ability-card">
+                        <div class="icon">👑</div>
+                        <h4>君临天下</h4>
+                        <p>威加四海，德被八方。万邦来朝，四夷宾服。天子一怒，伏尸百万；天子一笑，春满人间。</p>
+                    </div>
+                    <div class="ability-card">
+                        <div class="icon">🏛️</div>
+                        <h4>治国安邦</h4>
+                        <p>明镜高悬，法度严明。赏罚分明，政通人和。夜不闭户，路不拾遗，此乃太平盛世之景象。</p>
+                    </div>
+                    <div class="ability-card">
+                        <div class="icon">☯️</div>
+                        <h4>道法自然</h4>
+                        <p>顺应天道，无为而治。天人合一，和谐共生。观乎天文以察时变，观乎人文以化成天下。</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 功绩部分 -->
+        <section class="section achievements-section fade-in">
+            <h2 class="section-title">煌煌功绩</h2>
+            <div class="achievements-grid">
+                <div class="achievement-card">
+                    <div class="achievement-date">开天元年</div>
+                    <h3 class="achievement-title">开辟天地</h3>
+                    <p class="achievement-desc">以无上神力开天辟地，创造万物。定乾坤，分阴阳，立四时，制历法，使天地有序，万物生长。</p>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-date">定鼎三年</div>
+                    <h3 class="achievement-title">一统九州</h3>
+                    <p class="achievement-desc">挥师百万，平定四海，一统天下。结束战国纷争，建立万世基业，使天下归心，四海宾服。</p>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-date">永昌五年</div>
+                    <h3 class="achievement-title">登临九天</h3>
+                    <p class="achievement-desc">登天梯，踏祥云，与诸神论道。制定天条，规范神人，使三界有序，天地和谐。</p>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-date">太平十年</div>
+                    <h3 class="achievement-title">创立太平</h3>
+                    <p class="achievement-desc">轻徭薄赋，与民休息，开创太平盛世。路不拾遗，夜不闭户，真正实现天下大同。</p>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-date">开元十五年</div>
+                    <h3 class="achievement-title">文治武功</h3>
+                    <p class="achievement-desc">内修文德，外治武功。文化繁荣，武功鼎盛。开创中华文明之黄金时代。</p>
+                </div>
+                <div class="achievement-card">
+                    <div class="achievement-date">贞观二十年</div>
+                    <h3 class="achievement-title">万国来朝</h3>
+                    <p class="achievement-desc">威德远播，万国来朝。四海之内，皆为臣属。中华文明，光耀天下。</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 页脚 -->
+        <footer class="fade-in">
+            <div class="footer-content">
+                <p>九天之上 · 天子御驾</p>
+                <p>联系方式：祥云传书 · 仙鹤送信</p>
+                
+                <div class="social-links">
+                    <a href="#" class="social-icon"><i class="fab fa-weixin"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-qq"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-weibo"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化随机渐变背景
+        function initRandomGradient() {
+            const gradients = 30;
+            const randomNum = Math.floor(Math.random() * gradients) + 1;
+            document.body.className = `gradient-bg-${randomNum}`;
+        }
+
+        // 显示提示消息
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // 清理缓存
+        function clearCache() {
+            try {
+                localStorage.removeItem('userAvatar');
+                localStorage.removeItem('avatarTimestamp');
+                
+                // 清理IndexedDB
+                if (window.indexedDB) {
+                    const request = indexedDB.open('AvatarDB', 1);
+                    request.onsuccess = function(event) {
+                        const db = event.target.result;
+                        if (db.objectStoreNames.contains('avatars')) {
+                            const transaction = db.transaction(['avatars'], 'readwrite');
+                            const store = transaction.objectStore('avatars');
+                            store.delete('userAvatar');
+                        }
+                    };
+                }
+                
+                // 重置头像
+                document.getElementById('avatarImg').src = 'https://via.placeholder.com/300x400/1a1a1a/d4af37?text=天子御照';
+                
+                showToast('缓存已清理！');
+            } catch (error) {
+                showToast('清理失败：' + error.message);
+            }
+        }
+
+        // 图片裁剪相关变量
+        let currentFile = null;
+        let cropArea = null;
+        let isDragging = false;
+        let isResizing = false;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+        let startWidth = 0;
+        let startHeight = 0;
+        let resizeHandle = null;
+
+        // 处理头像上传
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            
+            if (!file) {
+                showToast('请选择图片文件');
+                return;
+            }
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('请选择有效的图片文件');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('图片大小不能超过10MB');
+                return;
+            }
+            
+            currentFile = file;
+            
+            // 检查图片比例
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const aspectRatio = img.width / img.height;
+                    
+                    // 如果是横图（宽大于高），提示裁剪
+                    if (aspectRatio > 1.2) {
+                        openCropModal(e.target.result);
+                    } else {
+                        // 竖图直接使用
+                        processImage(e.target.result);
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            // 清空input
+            event.target.value = '';
+        }
+
+        // 打开裁剪模态框
+        function openCropModal(imageSrc) {
+            const modal = document.getElementById('cropModal');
+            const cropImage = document.getElementById('cropImage');
+            const cropAreaEl = document.getElementById('cropArea');
+            
+            cropImage.src = imageSrc;
+            modal.classList.add('show');
+            
+            // 初始化裁剪区域
+            setTimeout(() => {
+                const imgRect = cropImage.getBoundingClientRect();
+                const containerRect = cropImage.parentElement.getBoundingClientRect();
+                
+                // 设置裁剪区域为正方形，居中显示
+                const size = Math.min(imgRect.width, imgRect.height) * 0.8;
+                const left = (imgRect.width - size) / 2;
+                const top = (imgRect.height - size) / 2;
+                
+                cropAreaEl.style.width = size + 'px';
+                cropAreaEl.style.height = size + 'px';
+                cropAreaEl.style.left = left + 'px';
+                cropAreaEl.style.top = top + 'px';
+                
+                initCropEvents();
+            }, 100);
+        }
+
+        // 初始化裁剪事件
+        function initCropEvents() {
+            cropArea = document.getElementById('cropArea');
+            
+            // 拖动裁剪区域
+            cropArea.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('crop-handle')) {
+                    isResizing = true;
+                    resizeHandle = e.target.className.split(' ')[1];
+                } else {
+                    isDragging = true;
+                }
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = cropArea.offsetLeft;
+                startTop = cropArea.offsetTop;
+                startWidth = cropArea.offsetWidth;
+                startHeight = cropArea.offsetHeight;
+                
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', handleCropMove);
+            document.addEventListener('mouseup', handleCropUp);
+        }
+
+        // 处理裁剪移动
+        function handleCropMove(e) {
+            if (!isDragging && !isResizing) return;
+            
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            
+            if (isDragging) {
+                // 拖动整个裁剪区域
+                const newLeft = Math.max(0, Math.min(startLeft + dx, cropArea.parentElement.offsetWidth - cropArea.offsetWidth));
+                const newTop = Math.max(0, Math.min(startTop + dy, cropArea.parentElement.offsetHeight - cropArea.offsetHeight));
+                
+                cropArea.style.left = newLeft + 'px';
+                cropArea.style.top = newTop + 'px';
+            } else if (isResizing) {
+                // 调整裁剪区域大小
+                handleResize(dx, dy);
+            }
+        }
+
+        // 处理调整大小
+        function handleResize(dx, dy) {
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+            let newLeft = startLeft;
+            let newTop = startTop;
+            
+            switch(resizeHandle) {
+                case 'se':
+                    newWidth = Math.max(50, startWidth + dx);
+                    newHeight = Math.max(50, startHeight + dy);
+                    break;
+                case 'sw':
+                    newWidth = Math.max(50, startWidth - dx);
+                    newHeight = Math.max(50, startHeight + dy);
+                    newLeft = Math.min(startLeft + dx, startLeft + startWidth - 50);
+                    break;
+                case 'ne':
+                    newWidth = Math.max(50, startWidth + dx);
+                    newHeight = Math.max(50, startHeight - dy);
+                    newTop = Math.min(startTop + dy, startTop + startHeight - 50);
+                    break;
+                case 'nw':
+                    newWidth = Math.max(50, startWidth - dx);
+                    newHeight = Math.max(50, startHeight - dy);
+                    newLeft = Math.min(startLeft + dx, startLeft + startWidth - 50);
+                    newTop = Math.min(startTop + dy, startTop + startHeight - 50);
+                    break;
+            }
+            
+            // 保持正方形
+            const size = Math.min(newWidth, newHeight);
+            
+            cropArea.style.width = size + 'px';
+            cropArea.style.height = size + 'px';
+            cropArea.style.left = newLeft + 'px';
+            cropArea.style.top = newTop + 'px';
+        }
+
+        // 处理鼠标释放
+        function handleCropUp() {
+            isDragging = false;
+            isResizing = false;
+            resizeHandle = null;
+        }
+
+        // 关闭裁剪模态框
+        function closeCropModal() {
+            document.getElementById('cropModal').classList.remove('show');
+            document.removeEventListener('mousemove', handleCropMove);
+            document.removeEventListener('mouseup', handleCropUp);
+        }
+
+        // 确认裁剪
+        function confirmCrop() {
+            const cropImage = document.getElementById('cropImage');
+            const cropArea = document.getElementById('cropArea');
+            
+            // 创建canvas进行裁剪
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置裁剪后的尺寸（头像尺寸）
+            canvas.width = 300;
+            canvas.height = 400;
+            
+            // 计算裁剪区域在原图中的位置和大小
+            const imgRect = cropImage.getBoundingClientRect();
+            const scaleX = cropImage.naturalWidth / imgRect.width;
+            const scaleY = cropImage.naturalHeight / imgRect.height;
+            
+            const cropX = cropArea.offsetLeft * scaleX;
+            const cropY = cropArea.offsetTop * scaleY;
+            const cropWidth = cropArea.offsetWidth * scaleX;
+            const cropHeight = cropArea.offsetHeight * scaleY;
+            
+            // 绘制裁剪后的图片
+            ctx.drawImage(cropImage, cropX, cropY, cropWidth, cropHeight, 0, 0, 300, 400);
+            
+            // 转换为base64
+            const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            
+            closeCropModal();
+            processImage(croppedDataUrl);
+        }
+
+        // 处理图片
+        function processImage(dataUrl) {
+            try {
+                // 显示图片
+                const avatarImg = document.getElementById('avatarImg');
+                avatarImg.src = dataUrl;
+                
+                // 清理旧缓存
+                clearCache();
+                
+                // 保存新图片
+                localStorage.setItem('userAvatar', dataUrl);
+                localStorage.setItem('avatarTimestamp', Date.now().toString());
+                
+                showToast('头像上传成功！');
+            } catch (error) {
+                showToast('图片处理失败：' + error.message);
+            }
+        }
+
+        // 加载保存的头像
+        function loadSavedAvatar() {
+            const savedAvatar = localStorage.getItem('userAvatar');
+            const timestamp = localStorage.getItem('avatarTimestamp');
+            
+            if (savedAvatar && timestamp) {
+                const age = Date.now() - parseInt(timestamp);
+                if (age < 7 * 24 * 60 * 60 * 1000) {
+                    document.getElementById('avatarImg').src = savedAvatar;
+                }
+            }
+        }
+
+        // 添加滚动动画效果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化随机背景
+            initRandomGradient();
+            
+            // 加载保存的头像
+            loadSavedAvatar();
+            
+            // 观察所有需要动画的元素
+            document.querySelectorAll('.fade-in').forEach(section => {
+                observer.observe(section);
+            });
+            
+            // 添加卡片悬停效果
+            const cards = document.querySelectorAll('.ability-card, .achievement-card, .gallery-item');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = this.classList.contains('gallery-item') 
+                        ? 'scale(1.03)' 
+                        : 'translateY(-3px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = '';
+                });
+            });
+
+            // 添加图片懒加载
+            const galleryImages = document.querySelectorAll('.gallery-img');
+            const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.style.opacity = '0';
+                        setTimeout(() => {
+                            img.style.transition = 'opacity 0.5s ease';
+                            img.style.opacity = '1';
+                        }, 100);
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            galleryImages.forEach(img => imageObserver.observe(img));
+        });
+
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // 按U键上传头像
+            if (e.code === 'KeyU' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                document.getElementById('avatarInput').click();
+            }
+            // 按C键清理缓存
+            if (e.code === 'KeyC' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                clearCache();
+            }
+        });
+
+        // 监听图片加载错误
+        document.getElementById('avatarImg').addEventListener('error', function() {
+            this.src = 'https://via.placeholder.com/300x400/1a1a1a/d4af37?text=图片加载失败';
+            showToast('头像加载失败，请重新上传');
+        });
+    </script>
+</body>
+</html>

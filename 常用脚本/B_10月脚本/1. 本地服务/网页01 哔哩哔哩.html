@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>ShellBrowser · 真核实用浏览器</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{margin:0;font:14px/1.4 -apple-system,BlinkMacSystemFont;overflow:hidden}
+  #toolbar{display:flex;align-items:center;background:#f5f5f5;border-bottom:1px solid #ddd;padding:6px}
+  #url{flex:1;padding:6px 8px;border:1px solid #ccc;border-radius:4px;margin:0 6px}
+  button{padding:6px 10px;margin:0 2px;border:1px solid #bbb;border-radius:4px;background:#fff;cursor:pointer}
+  button:hover{background:#e6e6e6}
+  #webview{height:calc(100vh - 41px);width:100%}
+  /* 评论浮层 */
+  #commentBar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;max-height:260px;display:flex;flex-direction:column;z-index:9999}
+  #commentBar.hidden{display:none}
+  #commentHead{padding:6px 10px;background:#fafafa;font-size:12px;color:#666}
+  #commentList{flex:1;overflow:auto;padding:6px 10px;font-size:13px}
+  #commentInputWrap{display:flex;padding:6px 10px;border-top:1px solid #eee}
+  #commentInput{flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;margin-right:6px}
+  /* 视频小窗 */
+  #videoPop{position:fixed;top:20px;right:20px;width:360px;height:202px;background:#000;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.6);z-index:10000;display:none}
+  #videoPop video{width:100%;height:100%;border-radius:8px}
+  /* 发布按钮 */
+  #fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:50%;background:#e91e63;color:#fff;border:none;font-size:24px;box-shadow:0 2px 8px rgba(233,30,99,.4);z-index:9999}
+  /* 下载面板 */
+  #downPanel{position:fixed;bottom:40px;left:20px;width:260px;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:10px;font-size:12px;display:none;z-index:9999}
+  #downPanel .title{font-weight:bold;margin-bottom:6px}
+  #downPanel .item{margin:4px 0;display:flex;justify-content:space-between}
+  #downPanel progress{width:100%}
+  /* 购买侧栏 */
+  #buyBar{position:fixed;top:0;right:-320px;width:300px;height:100%;background:#fff;box-shadow:-2px 0 8px rgba(0,0,0,.1);transition:right .3s;z-index:9999;display:flex;flex-direction:column}
+  #buyBar.show{right:0}
+  #buyHead{padding:10px;border-bottom:1px solid #eee;font-weight:bold}
+  #buyFrame{flex:1;border:none}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <button id="back">←</button>
+  <button id="forward">→</button>
+  <button id="reload">↻</button>
+  <input id="url" placeholder="输入网址回车">
+  <button id="go">前往</button>
+</div>
+
+<!-- WebView2 真核 -->
+<iframe id="webview" src="https://www.bilibili.com"></iframe>
+
+<!-- 评论栏 -->
+<div id="commentBar" class="hidden">
+  <div id="commentHead">💬 当前页面评论（本地存储）</div>
+  <div id="commentList"></div>
+  <div id="commentInputWrap">
+    <input id="commentInput" placeholder="写点什么…">
+    <button id="commentSend">发送</button>
+  </div>
+</div>
+
+<!-- 视频小窗 -->
+<div id="videoPop"><video controls></video></div>
+
+<!-- 发布 FAB -->
+<button id="fab">+</button>
+
+<!-- 下载面板 -->
+<div id="downPanel">
+  <div class="title">📥 下载管理</div>
+  <div id="downList"></div>
+</div>
+
+<!-- 购买侧栏 -->
+<div id="buyBar">
+  <div id="buyHead">🔍 比价助手</div>
+  <iframe id="buyFrame" src="about:blank"></iframe>
+</div>
+
+<script>
+/* ========== 工具函数 ========== */
+const $ = q => document.querySelector(q);
+const webview = $('#webview');
+const commentBar = $('#commentBar');
+const videoPop = $('#videoPop');
+const downPanel = $('#downPanel');
+const buyBar = $('#buyBar');
+
+/* ========== 1. 地址栏导航 ========== */
+function nav(){
+  let u = $('#url').value.trim();
+  if(!u.startsWith('http')) u = 'https://' + u;
+  webview.src = u;
+}
+$('#go').onclick = $('#url').onkeydown = e => { if(e.key==='Enter') nav(); };
+$('#back').onclick    = () => webview.contentWindow.history.back();
+$('#forward').onclick = () => webview.contentWindow.history.forward();
+$('#reload').onclick  = () => webview.contentWindow.location.reload();
+webview.onload = () => {
+  $('#url').value = webview.contentWindow.location.href;
+  loadComment();          // 载入评论
+  detectVideo();          // 检测视频
+  detectShop();           // 检测电商
+};
+
+/* ========== 2. 评论系统（本地存储） ========== */
+const COMMENT_KEY = 'shellBrowser_comment';
+function loadComment(){
+  const url = webview.contentWindow.location.href;
+  const all = JSON.parse(localStorage.getItem(COMMENT_KEY)||'{}');
+  const arr = all[url] || [];
+  $('#commentList').innerHTML = arr.map(c=>
+    `<div style="margin:4px 0"><b>${c.time}</b> ${c.text}</div>`).join('');
+  commentBar.classList.remove('hidden');
+}
+$('#commentSend').onclick = ()=>{
+  const txt = $('#commentInput').value.trim();
+  if(!txt) return;
+  const url = webview.contentWindow.location.href;
+  const all = JSON.parse(localStorage.getItem(COMMENT_KEY)||'{}');
+  if(!all[url]) all[url]=[];
+  all[url].push({text:txt, time:new Date().toLocaleTimeString()});
+  localStorage.setItem(COMMENT_KEY, JSON.stringify(all));
+  $('#commentInput').value='';
+  loadComment();
+};
+
+/* ========== 3. 视频小窗 ========== */
+function detectVideo(){
+  const doc = webview.contentDocument || webview.contentWindow.document;
+  const v = doc.querySelector('video');
+  if(v){
+    const popVid = videoPop.querySelector('video');
+    popVid.src = v.src || v.currentSrc;
+    videoPop.style.display='block';
+    v.addEventListener('play', ()=>popVid.play());
+    v.addEventListener('pause',()=>popVid.pause());
+  }else{
+    videoPop.style.display='none';
+  }
+}
+
+/* ========== 4. 下载拦截 ========== */
+webview.addEventListener('load', ()=>{
+  const doc = webview.contentDocument || webview.contentWindow.document;
+  // 拦截 <a download>
+  doc.addEventListener('click', e=>{
+    const a = e.target.closest('a[download]');
+    if(a && a.href){
+      e.preventDefault();
+      startDownload(a.href, a.download||'unknown');
+    }
+  });
+  // 拦截资源请求
+  const origOpen = doc.XMLHttpRequest.prototype.open;
+  doc.XMLHttpRequest.prototype.open = function(m,u){
+    if(m.toLowerCase()==='get' && (u.includes('.zip')||u.includes('.exe')||u.includes('.mp4'))){
+      startDownload(u);
+    }
+    return origOpen.apply(this, arguments);
+  };
+});
+
+function startDownload(url, filename='未知文件'){
+  downPanel.style.display='block';
+  const id = Date.now();
+  const item = document.createElement('div');
+  item.className='item';
+  item.innerHTML = `
+    <span>${filename}</span>
+    <progress value="0" max="100"></progress>
+  `;
+  $('#downList').appendChild(item);
+  // 使用 fetch 流式下载
+  fetch(url).then(r=>{
+    const len = r.headers.get('content-length');
+    let loaded=0;
+    const reader = r.body.getReader();
+    const stream = new ReadableStream({
+      start(ctrl){
+        function pump(){
+          reader.read().then(({done, value})=>{
+            if(done){ ctrl.close(); return; }
+            loaded += value.byteLength;
+            item.querySelector('progress').value = Math.round(loaded/len*100);
+            ctrl.enqueue(value);
+            pump();
+          });
+        }
+        pump();
+      }
+    });
+    return new Response(stream).blob();
+  }).then(blob=>{
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    item.innerHTML += '<span style=color:green> ✓完成</span>';
+  }).catch(err=>{
+    item.innerHTML += '<span style=color:red> ✗失败</span>';
+  });
+}
+
+/* ========== 5. 发布系统 ========== */
+$('#fab').onclick = ()=>{
+  const type = prompt('发布类型：1 图文  2 文件  3 代码片段');
+  if(!type) return;
+  if(type==='1'){
+    const title = prompt('标题');
+    const body  = prompt('内容');
+    if(title&&body) alert('已发布到本地存储！\n标题：'+title+'\n内容：'+body);
+    // 实际可 POST 到自建接口 / GitHub Issues 等
+  }else if(type==='2'){
+    const input = document.createElement('input');
+    input.type='file';
+    input.onchange = e=>{
+      const f = e.target.files[0];
+      alert('已选择文件：'+f.name+'\n大小：'+(f.size/1024/1024).toFixed(2)+' MB\n可继续调用上传 API');
+    };
+    input.click();
+  }else if(type==='3'){
+    const code = prompt('粘贴代码');
+    if(code) alert('已保存代码片段到本地！\n'+code);
+  }
+};
+
+/* ========== 6. 购买助手 ========== */
+function detectShop(){
+  const href = webview.contentWindow.location.href;
+  const shopList = ['tb.cn','tmall.com','jd.com','kaola.com','yangkeduo.com','suning.com'];
+  const isShop = shopList.some(d=>href.includes(d));
+  if(isShop){
+    buyBar.classList.add('show');
+    // 简单示例：把当前商品标题丢到比价网站
+    const doc = webview.contentDocument || webview.contentWindow.document;
+    const title = doc.title;
+    $('#buyFrame').src = `https://www.manmanbuy.com/search.aspx?keyword=${encodeURIComponent(title)}`;
+  }else{
+    buyBar.classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>

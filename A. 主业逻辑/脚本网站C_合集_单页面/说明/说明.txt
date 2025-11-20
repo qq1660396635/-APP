@@ -1,0 +1,3 @@
+cd "/storage/emulated/0/Android/LLS_2025/Xmind/11月脑图/脚本/脚本网站B 打包合集/"
+
+python server.py

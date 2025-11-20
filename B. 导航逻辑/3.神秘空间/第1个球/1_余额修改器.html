@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>装逼神器 - 微信/支付宝余额修改器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f7f7f7;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .phone-container {
+            width: 100%;
+            max-width: 414px;
+            height: 100vh;
+            margin: 0 auto;
+            background-color: #f7f7f7;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 页面切换 */
+        .page {
+            display: none;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* 顶部状态栏 */
+        .status-bar {
+            height: 44px;
+            background-color: #ededed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .status-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-icon {
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        
+        /* 微信页面样式 */
+        .wechat-header {
+            height: 44px;
+            background-color: #ededed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border-bottom: 1px solid #d7d7d7;
+        }
+        
+        .wechat-title {
+            font-size: 17px;
+            font-weight: 500;
+        }
+        
+        .wechat-back {
+            position: absolute;
+            left: 15px;
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .wechat-more {
+            position: absolute;
+            right: 15px;
+            font-size: 20px;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .wechat-content {
+            height: calc(100vh - 88px);
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+        
+        /* 核心功能区 */
+        .core-functions {
+            background-color: #07c160;
+            padding: 20px 15px;
+            margin-bottom: 10px;
+        }
+        
+        .core-functions-grid {
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .core-function-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+        
+        .core-function-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 20px;
+        }
+        
+        .core-function-name {
+            font-size: 14px;
+        }
+        
+        .wallet-balance {
+            font-size: 14px;
+            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .wallet-balance-amount {
+            font-size: 18px;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .wallet-balance-amount::after {
+            content: "双击修改";
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .wallet-balance-amount:hover::after {
+            opacity: 1;
+        }
+        
+        /* 功能区域 */
+        .function-section {
+            background-color: white;
+            margin-bottom: 10px;
+        }
+        
+        .section-title {
+            padding: 15px;
+            font-size: 14px;
+            color: #888;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .function-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 15px 0;
+        }
+        
+        .function-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+        
+        .function-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .function-name {
+            font-size: 12px;
+            color: #333;
+        }
+        
+        /* 支付宝页面样式 */
+        .alipay-header {
+            height: 44px;
+            background-color: #1677ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .alipay-title {
+            font-size: 17px;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .alipay-back {
+            position: absolute;
+            left: 15px;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .alipay-more {
+            position: absolute;
+            right: 15px;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .alipay-content {
+            height: calc(100vh - 88px);
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        /* 资金安全提示 */
+        .security-tip {
+            background-color: #e6f4ff;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .security-icon {
+            color: #1677ff;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .security-text {
+            font-size: 14px;
+            color: #1677ff;
+        }
+        
+        /* 余额卡片 */
+        .balance-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .balance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .balance-title {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .balance-eye {
+            font-size: 16px;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .balance-amount::after {
+            content: "双击修改";
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            font-size: 10px;
+            color: #999;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .balance-amount:hover::after {
+            opacity: 1;
+        }
+        
+        .balance-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .balance-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .withdraw-btn {
+            background-color: white;
+            border: 1px solid #1677ff;
+            color: #1677ff;
+        }
+        
+        .recharge-btn {
+            background-color: #1677ff;
+            color: white;
+        }
+        
+        /* 账户管理 */
+        .account-tip {
+            background-color: white;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .account-icon {
+            color: #ff6600;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .account-text {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        /* 快捷功能 */
+        .quick-functions {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-functions-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+        
+        .quick-function-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .quick-function-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 18px;
+            color: white;
+        }
+        
+        .quick-function-name {
+            font-size: 12px;
+            color: #333;
+            text-align: center;
+        }
+        
+        /* 签到模块 */
+        .sign-module {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .sign-left {
+            flex: 1;
+        }
+        
+        .sign-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .sign-desc {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .sign-btn {
+            background-color: white;
+            color: #ff6b6b;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        /* 理财页面样式 */
+        .finance-header {
+            height: 44px;
+            background-color: #1677ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .finance-title {
+            font-size: 17px;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .finance-back {
+            position: absolute;
+            left: 15px;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .finance-to-finance {
+            position: absolute;
+            right: 15px;
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .finance-content {
+            height: calc(100vh - 88px);
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+        
+        /* 资产概览卡片 */
+        .asset-overview {
+            background: linear-gradient(135deg, #1677ff, #4096ff);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .asset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .asset-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .asset-tip {
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        
+        .asset-items {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .asset-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .asset-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .asset-value {
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .asset-value::after {
+            content: "双击修改";
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .asset-value:hover::after {
+            opacity: 1;
+        }
+        
+        /* 标签栏 */
+        .tab-bar {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .tab-item {
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            padding: 5px 10px;
+        }
+        
+        .tab-item.active {
+            color: #1677ff;
+        }
+        
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background-color: #1677ff;
+        }
+        
+        .tab-name {
+            font-size: 14px;
+        }
+        
+        /* 红包提醒 */
+        .redpacket-reminder {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .redpacket-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .redpacket-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .redpacket-text {
+            color: white;
+        }
+        
+        .redpacket-title {
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        
+        .redpacket-desc {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .redpacket-btn {
+            background-color: white;
+            color: #ff6b6b;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        /* 理财资产列表 */
+        .finance-assets {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .finance-assets-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .finance-assets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .finance-asset-item {
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .finance-asset-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .finance-asset-value {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 保障资产 */
+        .insurance-assets {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .insurance-assets-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .insurance-tip {
+            font-size: 12px;
+            color: #ff6b6b;
+        }
+        
+        .insurance-value {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* 隐藏的修改余额弹窗 */
+        .balance-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .balance-modal-content {
+            background-color: white;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+            padding: 20px;
+        }
+        
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .balance-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .modal-cancel {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .modal-confirm {
+            background-color: #1677ff;
+            color: white;
+        }
+        
+        /* 提示信息 */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
+            z-index: 1001;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 微信服务页面 -->
+        <div class="page active" id="wechat-page">
+            <!-- 顶部状态栏 -->
+            <div class="status-bar">
+                <div class="status-left">
+                    <span id="wechat-time">15:39</span>
+                </div>
+                <div class="status-right">
+                    <span class="status-icon">5G</span>
+                    <span class="status-icon">📶</span>
+                    <span class="status-icon">🔋 46%</span>
+                </div>
+            </div>
+            
+            <!-- 标题栏 -->
+            <div class="wechat-header">
+                <div class="wechat-back">‹</div>
+                <div class="wechat-title">服务</div>
+                <div class="wechat-more" id="wechat-more">···</div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="wechat-content">
+                <!-- 核心功能区 -->
+                <div class="core-functions">
+                    <div class="core-functions-grid">
+                        <div class="core-function-item">
+                            <div class="core-function-icon">📷</div>
+                            <div class="core-function-name">收付款</div>
+                        </div>
+                        <div class="core-function-item">
+                            <div class="core-function-icon">💰</div>
+                            <div class="core-function-name">钱包</div>
+                            <div class="wallet-balance">余额</div>
+                            <div class="wallet-balance-amount" id="wechat-balance">¥0.07</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 金融理财 -->
+                <div class="function-section">
+                    <div class="section-title">金融理财</div>
+                    <div class="function-grid">
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #4caf50;">💳</div>
+                            <div class="function-name">信用卡还款</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #2196f3;">🔄</div>
+                            <div class="function-name">理财通</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #ff9800;">🛡️</div>
+                            <div class="function-name">保险服务</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 生活服务 -->
+                <div class="function-section">
+                    <div class="section-title">生活服务</div>
+                    <div class="function-grid">
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #2196f3;">📱</div>
+                            <div class="function-name">手机充值</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #4caf50;">✓</div>
+                            <div class="function-name">生活缴费</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #2196f3;">🐧</div>
+                            <div class="function-name">Q币充值</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #4caf50;">🏢</div>
+                            <div class="function-name">城市服务</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #f44336;">🌸</div>
+                            <div class="function-name">腾讯公益</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #ff9800;">🏥</div>
+                            <div class="function-name">医疗健康</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 交通出行 -->
+                <div class="function-section">
+                    <div class="section-title">交通出行</div>
+                    <div class="function-grid">
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #2196f3;">✈️</div>
+                            <div class="function-name">出行服务</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #4caf50;">🚄</div>
+                            <div class="function-name">火车票机票</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #ff9800;">🚗</div>
+                            <div class="function-name">滴滴出行</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #4caf50;">🛏️</div>
+                            <div class="function-name">酒店民宿</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 购物消费 -->
+                <div class="function-section">
+                    <div class="section-title">购物消费</div>
+                    <div class="function-grid">
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #f44336;">🛍️</div>
+                            <div class="function-name">品牌发现</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #f44336;">🛒</div>
+                            <div class="function-name">京东购物</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #ff9800;">🐰</div>
+                            <div class="function-name">美团外卖</div>
+                        </div>
+                        <div class="function-item">
+                            <div class="function-icon" style="background-color: #f44336;">🦉</div>
+                            <div class="function-name">电影演出玩乐</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 支付宝余额页面 -->
+        <div class="page" id="alipay-page">
+            <!-- 顶部状态栏 -->
+            <div class="status-bar">
+                <div class="status-left">
+                    <span id="alipay-time">15:43</span>
+                </div>
+                <div class="status-right">
+                    <span class="status-icon">5G</span>
+                    <span class="status-icon">📶</span>
+                    <span class="status-icon">🔋 44%</span>
+                </div>
+            </div>
+            
+            <!-- 标题栏 -->
+            <div class="alipay-header">
+                <div class="alipay-back" id="alipay-back">‹</div>
+                <div class="alipay-title">余额</div>
+                <div class="alipay-more" id="alipay-more">···</div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="alipay-content">
+                <!-- 资金安全提示 -->
+                <div class="security-tip">
+                    <div class="security-icon">🛡️</div>
+                    <div class="security-text">资金安全有保障 ></div>
+                </div>
+                
+                <!-- 余额卡片 -->
+                <div class="balance-card">
+                    <div class="balance-header">
+                        <div class="balance-title">可用余额(元)</div>
+                        <div class="balance-eye">👁️</div>
+                    </div>
+                    <div class="balance-amount" id="alipay-balance">0.00</div>
+                    <div class="balance-buttons">
+                        <button class="balance-btn withdraw-btn">提现</button>
+                        <button class="balance-btn recharge-btn">充值</button>
+                    </div>
+                </div>
+                
+                <!-- 账户管理提示 -->
+                <div class="account-tip">
+                    <div class="account-icon">📢</div>
+                    <div class="account-text">查看我名下的支付账户，便捷管理</div>
+                </div>
+                
+                <!-- 快捷功能 -->
+                <div class="quick-functions">
+                    <div class="quick-functions-grid">
+                        <div class="quick-function-item">
+                            <div class="quick-function-icon" style="background-color: #ff6600;">💸</div>
+                            <div class="quick-function-name">转账</div>
+                        </div>
+                        <div class="quick-function-item">
+                            <div class="quick-function-icon" style="background-color: #1677ff;">💳</div>
+                            <div class="quick-function-name">银行卡</div>
+                        </div>
+                        <div class="quick-function-item">
+                            <div class="quick-function-icon" style="background-color: #ff6600;">❤️</div>
+                            <div class="quick-function-name">亲情卡</div>
+                        </div>
+                        <div class="quick-function-item">
+                            <div class="quick-function-icon" style="background-color: #52c41a;">💰</div>
+                            <div class="quick-function-name">小荷包</div>
+                        </div>
+                        <div class="quick-function-item">
+                            <div class="quick-function-icon" style="background-color: #1677ff;">⏰</div>
+                            <div class="quick-function-name">定时充值</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 签到模块 -->
+                <div class="sign-module">
+                    <div class="sign-left">
+                        <div class="sign-title">今日签到 立得0.1元现金</div>
+                        <div class="sign-desc">可提现至余额</div>
+                    </div>
+                    <button class="sign-btn">去签到 ></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 理财页面 -->
+        <div class="page" id="finance-page">
+            <!-- 顶部状态栏 -->
+            <div class="status-bar">
+                <div class="status-left">
+                    <span id="finance-time">19:44</span>
+                </div>
+                <div class="status-right">
+                    <span class="status-icon">5G</span>
+                    <span class="status-icon">📶</span>
+                    <span class="status-icon">🔋 44%</span>
+                </div>
+            </div>
+            
+            <!-- 标题栏 -->
+            <div class="finance-header">
+                <div class="finance-back" id="finance-back">‹ 总资产</div>
+                <div class="finance-title">总资产</div>
+                <div class="finance-to-finance" id="finance-to-finance">去理财</div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="finance-content">
+                <!-- 资产概览 -->
+                <div class="asset-overview">
+                    <div class="asset-header">
+                        <div class="asset-title">资产概览</div>
+                        <div class="asset-tip">免费领保障</div>
+                    </div>
+                    <div class="asset-items">
+                        <div class="asset-item">
+                            <div class="asset-label">我的资产(元)</div>
+                            <div class="asset-value" id="finance-asset">0.00</div>
+                        </div>
+                        <div class="asset-item">
+                            <div class="asset-label">昨日收益</div>
+                            <div class="asset-value" id="finance-income">0.00</div>
+                        </div>
+                        <div class="asset-item">
+                            <div class="asset-label">家庭保障</div>
+                            <div class="asset-value">0份</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 标签栏 -->
+                <div class="tab-bar">
+                    <div class="tab-item active">
+                        <div class="tab-name">领取福利</div>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-name">资产升级</div>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-name">选好产品</div>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-name">收益分析</div>
+                    </div>
+                </div>
+                
+                <!-- 红包提醒 -->
+                <div class="redpacket-reminder">
+                    <div class="redpacket-left">
+                        <div class="redpacket-icon">🧧</div>
+                        <div class="redpacket-text">
+                            <div class="redpacket-title">你有红包待领取</div>
+                            <div class="redpacket-desc">转入余额宝可用 • 稳定 灵活 随时取用</div>
+                        </div>
+                    </div>
+                    <button class="redpacket-btn">去领取</button>
+                </div>
+                
+                <!-- 理财资产 -->
+                <div class="finance-assets">
+                    <div class="finance-assets-title">
+                        <span>¥ 理财资产</span>
+                    </div>
+                    <div class="finance-assets-grid">
+                        <div class="finance-asset-item">
+                            <div class="finance-asset-name">余额</div>
+                            <div class="finance-asset-value">0.00</div>
+                        </div>
+                        <div class="finance-asset-item">
+                            <div class="finance-asset-name">定期</div>
+                            <div class="finance-asset-value">收益稳健</div>
+                        </div>
+                        <div class="finance-asset-item">
+                            <div class="finance-asset-name">黄金</div>
+                            <div class="finance-asset-value">买入0费率</div>
+                        </div>
+                        <div class="finance-asset-item">
+                            <div class="finance-asset-name">余额宝</div>
+                            <div class="finance-asset-value">能赚又能花</div>
+                        </div>
+                        <div class="finance-asset-item">
+                            <div class="finance-asset-name">基金</div>
+                            <div class="finance-asset-value">10元试试</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 保障资产 -->
+                <div class="insurance-assets">
+                    <div class="insurance-assets-title">
+                        <span>☑️ 保障资产</span>
+                        <span class="insurance-tip">有保障待领取 •</span>
+                    </div>
+                    <div class="insurance-value">0份保单</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 修改余额弹窗 -->
+        <div class="balance-modal" id="balanceModal">
+            <div class="balance-modal-content">
+                <div class="modal-title" id="modalTitle">修改余额</div>
+                <input type="number" class="balance-input" id="balanceInput" placeholder="请输入金额" step="0.01">
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-cancel" id="cancelBtn">取消</button>
+                    <button class="modal-btn modal-confirm" id="confirmBtn">确定</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 提示信息 -->
+        <div class="toast" id="toast">余额已更新</div>
+    </div>
+    
+    <script>
+        // 页面切换功能
+        const wechatPage = document.getElementById('wechat-page');
+        const alipayPage = document.getElementById('alipay-page');
+        const financePage = document.getElementById('finance-page');
+        
+        // 显示页面
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+        
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            
+            const wechatTime = document.getElementById('wechat-time');
+            const alipayTime = document.getElementById('alipay-time');
+            const financeTime = document.getElementById('finance-time');
+            
+            if (wechatTime) wechatTime.textContent = `${hours}:${minutes}`;
+            if (alipayTime) alipayTime.textContent = `${hours}:${minutes}`;
+            if (financeTime) financeTime.textContent = `${hours}:${minutes}`;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000);
+        
+        // 页面跳转逻辑
+        document.getElementById('wechat-more').addEventListener('click', function() {
+            showPage('alipay-page');
+        });
+        
+        document.getElementById('alipay-more').addEventListener('click', function() {
+            showPage('finance-page');
+        });
+        
+        document.getElementById('finance-to-finance').addEventListener('click', function() {
+            showPage('wechat-page');
+        });
+        
+        // 隐藏的返回按钮（支付宝页面）
+        document.getElementById('alipay-back').addEventListener('click', function() {
+            showPage('wechat-page');
+        });
+        
+        // 理财页面返回按钮
+        document.getElementById('finance-back').addEventListener('click', function() {
+            showPage('wechat-page');
+        });
+        
+        // 余额修改功能
+        const balanceModal = document.getElementById('balanceModal');
+        const balanceInput = document.getElementById('balanceInput');
+        const modalTitle = document.getElementById('modalTitle');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const toast = document.getElementById('toast');
+        
+        let currentBalanceElement = null;
+        
+        // 微信余额修改
+        document.getElementById('wechat-balance').addEventListener('dblclick', function() {
+            currentBalanceElement = this;
+            modalTitle.textContent = '修改微信余额';
+            balanceInput.value = this.textContent.replace('¥', '');
+            balanceModal.style.display = 'flex';
+            balanceInput.focus();
+        });
+        
+        // 支付宝余额修改
+        document.getElementById('alipay-balance').addEventListener('dblclick', function() {
+            currentBalanceElement = this;
+            modalTitle.textContent = '修改支付宝余额';
+            balanceInput.value = this.textContent;
+            balanceModal.style.display = 'flex';
+            balanceInput.focus();
+        });
+        
+        // 理财资产修改
+        document.getElementById('finance-asset').addEventListener('dblclick', function() {
+            currentBalanceElement = this;
+            modalTitle.textContent = '修改总资产';
+            balanceInput.value = this.textContent;
+            balanceModal.style.display = 'flex';
+            balanceInput.focus();
+        });
+        
+        // 昨日收益修改
+        document.getElementById('finance-income').addEventListener('dblclick', function() {
+            currentBalanceElement = this;
+            modalTitle.textContent = '修改昨日收益';
+            balanceInput.value = this.textContent;
+            balanceModal.style.display = 'flex';
+            balanceInput.focus();
+        });
+        
+        // 取消修改
+        cancelBtn.addEventListener('click', function() {
+            balanceModal.style.display = 'none';
+        });
+        
+        // 确认修改
+        confirmBtn.addEventListener('click', function() {
+            const newBalance = parseFloat(balanceInput.value);
+            if (!isNaN(newBalance) && newBalance >= 0) {
+                if (currentBalanceElement.id === 'wechat-balance') {
+                    currentBalanceElement.textContent = `¥${newBalance.toFixed(2)}`;
+                } else {
+                    currentBalanceElement.textContent = newBalance.toFixed(2);
+                }
+                balanceModal.style.display = 'none';
+                showToast('余额已更新');
+            } else {
+                showToast('请输入有效金额');
+            }
+        });
+        
+        // 显示提示信息
+        function showToast(message) {
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(function() {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+        
+        // 点击模态框外部关闭
+        balanceModal.addEventListener('click', function(e) {
+            if (e.target === balanceModal) {
+                balanceModal.style.display = 'none';
+            }
+        });
+        
+        // 回车键确认修改
+        balanceInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                confirmBtn.click();
+            }
+        });
+        
+        // 功能项点击效果
+        const functionItems = document.querySelectorAll('.function-item, .core-function-item, .quick-function-item, .finance-asset-item');
+        functionItems.forEach(item => {
+            item.addEventListener('click', function() {
+                showToast('功能演示中，仅可修改余额');
+            });
+        });
+        
+        // 其他按钮点击效果
+        document.querySelectorAll('.balance-btn, .sign-btn, .redpacket-btn, .security-tip, .account-tip, .asset-tip, .tab-item').forEach(btn => {
+            btn.addEventListener('click', function() {
+                showToast('功能演示中，仅可修改余额');
+            });
+        });
+        
+        // 眼睛图标点击效果
+        document.querySelectorAll('.balance-eye').forEach(eye => {
+            eye.addEventListener('click', function() {
+                this.textContent = this.textContent === '👁️' ? '👁️‍🗨️' : '👁️';
+                showToast('余额可见性已切换');
+            });
+        });
+    </script>
+</body>
+</html>
